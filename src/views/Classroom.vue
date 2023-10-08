@@ -98,7 +98,7 @@
 
         <v-list
           nav
-          v-for="(room, name, i) in liveClassProxy?.rooms"
+          v-for="(room, name, i) in getRooms()"
           :key="i"
           density="compact"
         >
@@ -176,8 +176,10 @@
       width="90%"
       scrollable
       persistent
+      :id="'settings' + componentKey"
     >
       <Settings
+        ref="Settings"
         @close="showSettings = false"
         :config="data"
         :scrapedModules="scrapedModules"
@@ -243,6 +245,19 @@ export default {
   },
 
   methods: {
+    getRooms() {
+      if (!this.liveClassProxy) return;
+
+      const sortedKeys = Object.keys(this.liveClassProxy.rooms).sort();
+
+      const rooms = {};
+      sortedKeys.forEach((key) => {
+        rooms[key] = this.liveClassProxy.rooms[key];
+      });
+
+      return rooms;
+    },
+
     async init() {
       this.database = new Database();
       const self = this;
@@ -286,20 +301,23 @@ export default {
         this.scrapedModules.push(module);
       }
 
-      this.communication = new Comm2(
-        this.id,
-        this.room.data.meta.defaultNumberOfRooms,
-        this.stationName
-      );
-
       const self = this;
-      this.communication.on("update", (config: any) => {
-        self.liveClassProxy = config.data;
-      });
 
-      this.liveClassProxy = this.communication.getDoc();
+      setTimeout(() => {
+        self.communication = new Comm2(
+          this.id,
+          this.room.data.meta.defaultNumberOfRooms,
+          this.stationName
+        );
 
-      this.componentKey++;
+        self.communication.on("update", (config: any) => {
+          self.liveClassProxy = config.data;
+        });
+
+        self.liveClassProxy = self.communication.getDoc();
+
+        self.componentKey++;
+      }, Math.random() * 1000 + 1000);
     },
 
     copy(json: any) {
@@ -307,6 +325,8 @@ export default {
     },
 
     saveClass(config: any) {
+      this.$refs.Settings.close = true;
+
       this.room.data = this.copy(config);
       this.data = this.copy(config);
 
@@ -314,7 +334,8 @@ export default {
 
       this.database.update(this.copy(this.room));
 
-      this.init();
+      //this.client.updateConfig(this.copy(this.room));
+      //this.scrapeModules();
     },
 
     usersInRoom(name: string) {

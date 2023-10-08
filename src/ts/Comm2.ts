@@ -132,7 +132,7 @@ export default class Comm2 {
       if (self.stationID) {
         if (users.has(self.peerID) && rooms.has(self.stationID)) {
           self.onUpdate()
-          self.join('update')
+          self.join('join')
         } else {
           self.doc.transact(() => {
             rooms.set(self.stationID, ROOM)
@@ -140,6 +140,7 @@ export default class Comm2 {
           })
         }
       } else {
+        console.log('Room configuration has changed ... updating')
         if (users.has(self.peerID)) {
           self.onUpdate()
           self.join('update')
@@ -160,27 +161,38 @@ export default class Comm2 {
 
     const self = this
 
+    this.p2pt.on('trackerconnect', (tracker, stats) => {
+      console.log('Connected to tracker : ' + tracker.announceUrl)
+      console.log('Tracker stats : ' + JSON.stringify(stats))
+    })
+
     this.p2pt.on('peerconnect', (peer) => {
-      console.warn('Peer connected : ' + peer.id, peer)
+      console.log('Peer connected : ' + peer.id, peer)
       self.peers[peer.id] = { peer, id: null }
 
-      self.join()
+      setTimeout(() => {
+        self.join()
+      }, Math.random() * 2000)
     })
 
     this.p2pt.on('peerclose', (peer) => {
-      console.warn('Peer disconnected : ' + peer)
+      const peerID = this.peers[peer.id]?.id
+      console.log('Peer disconnected : ', peer.id, peerID)
 
-      const peerID = this.peers[peer.id].id
-      this.doc.getMap('users').delete(peerID)
+      if (peerID) {
+        this.doc.getMap('users').delete(peerID)
 
-      if (peerID.length < 12) {
-        this.doc.getMap('rooms').delete(peerID)
+        if (peerID.length < 12) {
+          this.doc.getMap('rooms').delete(peerID)
+        }
       }
 
       delete self.peers[peer.id]
     })
 
     this.p2pt.on('msg', (peer, msg) => {
+      console.warn(`Got message from ${peer.id}`, JSON.stringify(msg, null, 2))
+
       switch (msg.cmd) {
         case 'join': {
           this.peers[peer.id].id = msg.id
@@ -215,8 +227,8 @@ export default class Comm2 {
 
     this.p2pt.start()
 
-    const gossip = dynamicGossip(this)
-    gossip()
+    //const gossip = dynamicGossip(this)
+    //gossip()
   }
 
   gotoRoom(room: string) {
@@ -255,7 +267,7 @@ export default class Comm2 {
 
   onUpdate() {
     if (this.update_) {
-      console.warn('onUpdate', JSON.stringify(this.doc.toJSON(), null, 2))
+      //console.warn('onUpdate', JSON.stringify(this.doc.toJSON(), null, 2))
 
       this.update_({
         id: this.peerID,
@@ -296,7 +308,10 @@ export default class Comm2 {
                 room,
                 message,
               })
-            } catch (e) {}
+            } catch (e) {
+              //console.warn(e.message)
+              //delete this.peers[id]
+            }
           }
         }
       }
@@ -313,7 +328,10 @@ export default class Comm2 {
             room,
             ...message,
           })
-        } catch (e) {}
+        } catch (e) {
+          //console.warn(e.message)
+          //delete this.peers[id]
+        }
       }
     }
   }

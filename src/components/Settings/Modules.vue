@@ -1,57 +1,60 @@
 <template>
 
-  <v-list two-line>
-    <!--draggable
-      v-model="config.modules"
+  <v-list lines="three">
+    <draggable
+      :list="config.modules"
       item-key="id"
-    -->
-    <v-list-item
-      v-for="(module, i) in config.modules"
-      :key="i"
-      class="handle"
+      @end="move"
+      class="list-group"
     >
-      <template v-slot:prepend>
-        <v-icon :icon="scrapedModules[i].icon || 'mdi-package'"></v-icon>
-      </template>
-
-      <v-list-item-title>
-        {{ scrapedModules[i].name }}
-        <v-chip size="x-small">
-          {{module.showInCustom || "*"}}
-        </v-chip>
-      </v-list-item-title>
-
-      <v-list-item-subtitle
-        v-html="scrapedModules[i].description"
-        style="white-space: break-spaces"
-      >
-      </v-list-item-subtitle>
-
-      <template v-slot:append>
-
-        <v-menu :close-on-content-click="false">
-          <template v-slot:activator="{ props }">
-            <v-btn
-              icon="mdi-cog"
-              variant="text"
-              v-bind="props"
-            ></v-btn>
-
+      <template #item="{ element, index }">
+        <v-list-item
+          :key="index"
+          class="list-group-item"
+        >
+          <template v-slot:prepend>
+            <v-icon :icon="scrapedModules[index].icon || 'mdi-package'"></v-icon>
           </template>
 
-          <Module
-            :id_="i"
-            :module="module"
-          ></Module>
-        </v-menu>
+          <v-list-item-title>
+            {{ scrapedModules[index].name }}
+            <v-chip size="x-small">
+              {{element.showInCustom || "*"}}
+            </v-chip>
+          </v-list-item-title>
 
-        <v-btn
-          icon="mdi-delete"
-          variant="text"
-        ></v-btn>
+          <v-list-item-subtitle
+            v-html="scrapedModules[index].description"
+            style="white-space: break-spaces"
+          >
+          </v-list-item-subtitle>
+
+          <template v-slot:append>
+
+            <v-menu :close-on-content-click="false">
+              <template v-slot:activator="{ props }">
+                <v-btn
+                  icon="mdi-cog"
+                  variant="text"
+                  v-bind="props"
+                ></v-btn>
+
+              </template>
+
+              <Module
+                :id_="index"
+                :module="element"
+              ></Module>
+            </v-menu>
+
+            <v-btn
+              icon="mdi-delete"
+              variant="text"
+            ></v-btn>
+          </template>
+        </v-list-item>
       </template>
-    </v-list-item>
-
+    </draggable>
     <v-list-item>
       <template v-slot:prepend>
         <v-icon icon="mdi-link"></v-icon>
@@ -77,7 +80,6 @@
 
     </v-list-item>
 
-    <!--/draggable-->
   </v-list>
 
   <v-divider class="pb-2"></v-divider>
@@ -93,7 +95,7 @@
     
 <script lang="ts">
 import { scrapeModule, validateUrl } from "../../ts/Utils";
-//import draggable from "vuedraggable";
+import draggable from "vuedraggable";
 import Module from "./Module.vue";
 
 export default {
@@ -126,6 +128,15 @@ export default {
       }
     },
 
+    move(event: any) {
+      const element = this.scrapedModules[event.oldIndex];
+
+      this.scrapedModules[event.oldIndex] = this.scrapedModules[event.newIndex];
+      this.scrapedModules[event.newIndex] = element;
+
+      return true;
+    },
+
     validate_url(url: string) {
       return validateUrl(url);
     },
@@ -150,7 +161,7 @@ export default {
       this.moduleImportUrl = "";
     },
   },
-  components: { Module },
+  components: { Module, draggable },
 };
 </script>
     

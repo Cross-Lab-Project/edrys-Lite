@@ -62,7 +62,7 @@ export default {
 
   methods: {
     updateIframe() {
-      console.warn("updateIframe", typeof this.liveClassProxy_);
+      //console.warn("updateIframe", typeof this.liveClassProxy_);
 
       try {
         this.$refs.iframe.contentWindow.postMessage(

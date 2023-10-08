@@ -48,11 +48,11 @@ export default class Comm {
     this.p2pt.on('peerclose', (peer) => {
       //console.warn('Peer disconnected : ' + peer)
 
-      delete self.peers[peer.id]
+      if (self.peers[peer.id]) delete self.peers[peer.id]
     })
 
     this.p2pt.on('msg', (peer, msg) => {
-      //console.warn(`Got message from ${peer.id} : ${JSON.stringify(msg)}`)
+      console.log(`Got message from ${peer.id} : ${JSON.stringify(msg)}`)
 
       switch (msg.cmd) {
         case 'join':
@@ -100,6 +100,17 @@ export default class Comm {
     }
   }
 
+  updateConfig(data: any) {
+    this.data = data
+    this.timestamp = Date.now()
+
+    this.broadcast({
+      cmd: 'update',
+      data: this.data,
+      timestamp: this.timestamp,
+    })
+  }
+
   on(event: 'update', callback: any) {
     switch (event) {
       case 'update': {
@@ -116,7 +127,12 @@ export default class Comm {
     }
 
     for (const id in this.peers) {
-      this.p2pt.send(this.peers[id], msg)
+      try {
+        this.p2pt.send(this.peers[id], msg)
+      } catch (e) {
+        console.warn(e.message)
+        delete this.peers[id]
+      }
     }
   }
 

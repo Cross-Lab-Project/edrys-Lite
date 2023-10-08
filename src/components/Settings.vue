@@ -152,7 +152,7 @@ export default {
     },
   },
 
-  emits: ["close"],
+  emits: ["close", "saveClass", "deleteClass", "updateClass"],
 
   data() {
     console.log("Classroom config", JSON.stringify(this.config, null, 2));

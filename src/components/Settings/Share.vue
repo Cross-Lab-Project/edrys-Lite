@@ -122,7 +122,6 @@ export default {
           ? yaml.dump(this.config)
           : JSON.stringify(this.config, null, 2);
 
-      console.warn("downloadClass", format, data);
       const name =
         "class-" + this.config.id + (format === "yaml" ? ".yml" : ".json");
 
@@ -146,8 +145,6 @@ export default {
         const text = await response.text();
 
         const newClass = parseClassroom(text);
-
-        console.warn("newClass", JSON.stringify(newClass, null, 2));
 
         if (newClass) {
           this.updateConfig(newClass);
@@ -175,7 +172,6 @@ export default {
         // will load yaml and json as well
 
         const newClass = parseClassroom(reader.result?.toString() || "");
-        console.warn("newClass", newClass);
 
         if (newClass) {
           //this.updateState(newClass);
