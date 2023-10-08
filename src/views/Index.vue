@@ -23,7 +23,7 @@
           >
             <v-card
               class="item"
-              color="primary"
+              color="surface-variant"
               elevation="4"
             >
               <v-img
@@ -34,7 +34,7 @@
               <v-card-title>{{classroom.data?.name}}</v-card-title>
               <v-card-subtitle>
 
-                <span v-if="classroom.owner">You teach this class</span>
+                <span v-if="classroom?.data.createdBy === peerID">You own this class</span>
                 <span v-else>You're a student here</span>
 
               </v-card-subtitle>
@@ -44,12 +44,51 @@
               </v-card-text>
 
               <v-card-actions>
+                <v-btn
+                  icon
+                  title="fork"
+                  @click="forkClass(classroom)"
+                >
+                  <v-icon>mdi-source-fork</v-icon>
+                </v-btn>
+                <v-menu>
+                  <template v-slot:activator="{ props }">
+                    <v-btn
+                      color=""
+                      v-bind="props"
+                      icon="mdi-delete"
+                    > </v-btn>
+                  </template>
+
+                  <v-list>
+                    <v-list-item>
+                      <v-list-item-title>
+                        Are you sure?
+                      </v-list-item-title>
+
+                      <v-btn
+                        color="red"
+                        depressed
+                        @click="deleteClass(classroom.id)"
+                        class="float-right"
+                        style="margin-top: 10px"
+                      >
+                        Yes, delete forever</v-btn>
+
+                    </v-list-item>
+                  </v-list>
+                </v-menu>
+
                 <v-spacer></v-spacer>
                 <a
                   data-link="true"
                   :href="`/?/classroom/${classroom.id}`"
+                  style="color: white"
                 >
-                  <v-btn icon>
+                  <v-btn
+                    icon
+                    title="open"
+                  >
                     <v-icon>mdi-arrow-right-bold</v-icon>
                   </v-btn>
                 </a>
@@ -67,7 +106,7 @@
           >
             <v-card
               class="item"
-              color="primary"
+              color="surface-variant"
               elevation="4"
               @click="createClass()"
               variant="elevated"
@@ -98,12 +137,31 @@ export default {
   data() {
     return {
       classrooms: window["edrys"].index,
+      peerID: getPeerID(),
     };
   },
 
   methods: {
     async init() {
       console.log("init");
+    },
+
+    deleteClass(id: string) {
+      window["edrys"].database.drop(id);
+      window.location.search = "";
+    },
+
+    forkClass(classroom: any) {
+      classroom = JSON.parse(JSON.stringify(classroom));
+
+      console.log(classroom);
+      const id = infoHash();
+      classroom.data.createdBy = getPeerID();
+      classroom.id = id;
+
+      window["edrys"].database.put(id, classroom.data, null);
+
+      window.location.href = `?/classroom/${id}`;
     },
 
     async createClass() {
@@ -137,7 +195,7 @@ export default {
         ],
       };
 
-      window["edrys"].database.put(id, classroom, null, true, false);
+      window["edrys"].database.put(id, classroom, null);
 
       window.location.href = `?/classroom/${id}`;
     },

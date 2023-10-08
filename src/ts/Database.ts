@@ -10,9 +10,7 @@ export default class {
       data: `
             &id,
             timestamp,
-            data,
-            owner,
-            shared`,
+            data`,
     })
 
     this.db
@@ -39,20 +37,12 @@ export default class {
     return await this.db['data'].get(id)
   }
 
-  async put(
-    id: string,
-    data: any,
-    timestamp: number,
-    owner: boolean = false,
-    shared: boolean = false
-  ) {
-    console.warn('put', id, data, owner)
+  async put(id: string, data: any, timestamp: number) {
+    console.warn('put', id, data, timestamp)
     await this.db['data'].put({
       id: id,
       timestamp: timestamp || Date.now(),
       data,
-      owner,
-      shared,
     })
   }
 

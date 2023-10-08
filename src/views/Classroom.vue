@@ -87,7 +87,7 @@
                 icon="mdi-cog"
                 @click="showSettings = !showSettings"
                 variant="text"
-                v-if="!isStation && room?.owner"
+                v-if="!isStation && room?.data?.createdBy === communication?.getId()"
               ></v-btn>
             </template>
 
@@ -134,7 +134,7 @@
               block
               class="mb-2"
               @click="addRoom"
-              v-if="!isStation && room?.owner"
+              v-if="!isStation && room?.data?.createdBy === communication?.getId()"
             >
               <v-icon left>mdi-forum</v-icon>
               New room
@@ -149,7 +149,7 @@
           <Modules
             :role="isStation ? 'station'
             :
-            (room.owner
+            (room.data.createdBy === communication?.getId()
             ? 'teacher'
             : 'student'
             )"
