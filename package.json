@@ -1,0 +1,36 @@
+{
+  "name": "edrys-lite",
+  "version": "1.0.0",
+  "description": "Browser based edrys-clone that uses the WebTorrent network sharing labs",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "sw": "npx workbox injectManifest workbox-config.js",
+    "build": "npx parcel build src/index.html --log-level verbose --no-source-maps --public-url ./",
+    "watch": "rm -rf dist && npx parcel serve src/*.html --no-cache --no-source-maps --open --port 5999"
+  },
+  "author": "André Dietrich",
+  "license": "Mozilla Public License Version 2.0",
+  "devDependencies": {
+    "@parcel/transformer-sass": "^2.9.3",
+    "@parcel/transformer-vue": "^2.9.3",
+    "assert": "^2.1.0",
+    "buffer": "^6.0.3",
+    "create-vuetify": "^1.1.0",
+    "date-format-simple": "^1.1.5",
+    "dexie": "^3.2.4",
+    "events": "^3.3.0",
+    "js-yaml": "^4.1.0",
+    "p2pt": "^1.5.1",
+    "parcel": "^2.9.3",
+    "process": "^0.11.10",
+    "uint8-to-base64": "^0.2.0",
+    "vue-prism-editor": "^2.0.0-alpha.2",
+    "vuedraggable": "^4.1.0",
+    "vuetify": "^3.3.16"
+  },
+  "dependencies": {
+    "material-design-icons-iconfont": "^6.7.0",
+    "prismjs": "^1.29.0",
+    "yjs": "^13.6.8"
+  }
+}
