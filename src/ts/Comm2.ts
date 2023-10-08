@@ -1,5 +1,5 @@
 import P2PT from 'p2pt'
-import { infoHash } from './Utils'
+import { infoHash, getPeerID } from './Utils'
 import * as Y from 'yjs'
 import { encode, decode } from 'uint8-to-base64'
 
@@ -78,11 +78,7 @@ export default class Comm2 {
   }
 
   constructor(id: string, defaultRooms: number = 0, stationID: string) {
-    let peerID = localStorage.getItem('peerID')
-    if (!peerID) {
-      peerID = infoHash(12)
-      localStorage.setItem('peerID', peerID)
-    }
+    let peerID = getPeerID()
 
     if (stationID) {
       this.stationID = 'Station ' + stationID

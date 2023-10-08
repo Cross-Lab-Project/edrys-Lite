@@ -313,3 +313,13 @@ export function infoHash(length = 40) {
 
   return str
 }
+
+export function getPeerID() {
+  let peerID = localStorage.getItem('peerID')
+  if (!peerID) {
+    peerID = infoHash(12)
+    localStorage.setItem('peerID', peerID)
+  }
+
+  return peerID
+}

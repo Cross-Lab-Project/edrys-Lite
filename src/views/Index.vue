@@ -92,7 +92,7 @@
   
   
 <script lang="ts">
-import { infoHash } from "../ts/Utils";
+import { infoHash, getPeerID } from "../ts/Utils";
 
 export default {
   data() {
@@ -111,7 +111,7 @@ export default {
 
       const classroom = {
         id,
-        createdBy: "teacher",
+        createdBy: getPeerID(),
         dateCreated: new Date().getTime(),
         name: "My New Class",
         meta: {
