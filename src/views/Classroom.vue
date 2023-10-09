@@ -120,10 +120,10 @@
           </v-list-item>
 
           <v-list-item
-            v-for="(user, j) in usersInRoom(name)"
+            v-for="([user, color], j) in usersInRoom(name)"
             :key="j"
             :title="user"
-            style="min-height: 1.25rem;"
+            :style="'min-height: 1.25rem; color: ' + color"
           />
 
         </v-list>
@@ -339,12 +339,17 @@ export default {
       //this.scrapeModules();
     },
 
-    usersInRoom(name: string) {
+    usersInRoom(name: string): [string, string][] {
       const users = [];
+      const userID = this.communication?.getId();
 
       for (const id in this.liveClassProxy.users) {
+        console.warn("XXXXXXXXXX", id, this.communication);
         if (this.liveClassProxy.users[id].room === name) {
-          users.push(this.liveClassProxy.users[id].displayName);
+          users.push([
+            this.liveClassProxy.users[id].displayName,
+            userID === id ? "black" : "grey",
+          ]);
         }
       }
 
