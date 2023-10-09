@@ -14,6 +14,7 @@
             <a
               href="./"
               data-link="true"
+              style="color: white; text-decoration: none;"
             >edrys-lite</a>
 
           </v-app-bar-title>
