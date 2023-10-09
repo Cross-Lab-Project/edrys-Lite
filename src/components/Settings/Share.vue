@@ -23,15 +23,15 @@
     </v-col>
   </v-row>
   <v-row>
-    <v-col fluid>
+    <v-col>
 
       <v-file-input
         dense
         accept=".yml,.yaml,.json,application/yaml,application/json"
         label="Restore class from file (yaml, json)"
         v-model="selectedFile"
-        :prepend-icon="selectedFileIcon"
-        @click:prepend="restoreFile"
+        :append-icon="selectedFileIcon"
+        @click:append.self="restoreFile"
       ></v-file-input>
 
     </v-col>
@@ -41,9 +41,21 @@
         dense
         label="Restore class from URL (http, https)"
         v-model="selectedURL"
-        :prepend-icon="selectedURLIcon"
-        @click:prepend="restoreURL"
-      ></v-text-field>
+        prepend-icon="mdi-link"
+        :append-icon="selectedURLIcon"
+        @click:append.self="restoreURL"
+        @mouseover="showTemplate = true"
+        @mouseleave="showTemplate = false"
+      >
+        <template v-slot:append-inner>
+          <v-icon
+            @mouseover="showTemplate = true"
+            @mouseleave="showTemplate = false"
+            v-if="selectedURL.length>0 && showTemplate"
+            @click="selectedURL = ''"
+          >mdi-close-circle</v-icon>
+        </template>
+      </v-text-field>
 
     </v-col>
   </v-row>
@@ -63,7 +75,7 @@
 <script lang="ts">
 import * as yaml from "js-yaml";
 
-import { parseClassroom } from "../../ts/Utils";
+import { getPeerID, parseClassroom } from "../../ts/Utils";
 
 export default {
   name: "Settings-Share",
@@ -82,6 +94,8 @@ export default {
       url: window.location.toString(),
       selectedURL: "",
       selectedFile: [],
+
+      showTemplate: false,
 
       restoreSuccess: false,
       saveError: false,
@@ -104,9 +118,9 @@ export default {
         };
       }
       this.config.name = newConfig.name;
-      this.config.createdBy = newConfig.createdBy;
+
       this.config.meta = newConfig.meta;
-      this.config.createdBy = newConfig.createdBy;
+      this.config.createdBy = getPeerID();
       this.config.dateCreated = newConfig.dateCreated;
       this.config.members = newConfig.members;
       this.config.modules = newConfig.modules;
@@ -177,6 +191,8 @@ export default {
           //this.updateState(newClass);
           this.updateConfig(newClass);
           this.restoreSuccess = true;
+
+          console.log("restoreFile: loaded class", newClass);
         } else {
           this.restoreSuccess = false;
           this.saveError = true;
@@ -197,10 +213,10 @@ export default {
 
   computed: {
     selectedURLIcon() {
-      return this.selectedURL ? "mdi-upload" : "mdi-link";
+      return this.selectedURL ? "mdi-upload" : "";
     },
     selectedFileIcon() {
-      return this.selectedFile[0] !== undefined ? "mdi-upload" : "mdi-file";
+      return this.selectedFile[0] !== undefined ? "mdi-upload" : "";
     },
   },
 };

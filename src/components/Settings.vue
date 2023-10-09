@@ -158,7 +158,7 @@ export default {
     console.log("Classroom config", JSON.stringify(this.config, null, 2));
 
     return {
-      tab: 2,
+      tab: 0,
     };
   },
 
