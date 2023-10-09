@@ -82,7 +82,7 @@
                 <v-spacer></v-spacer>
                 <a
                   data-link="true"
-                  :href="`/?/classroom/${classroom.id}`"
+                  :href="`./?/classroom/${classroom.id}`"
                   style="color: white"
                 >
                   <v-btn
