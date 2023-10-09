@@ -344,7 +344,6 @@ export default {
       const userID = this.communication?.getId();
 
       for (const id in this.liveClassProxy.users) {
-        console.warn("XXXXXXXXXX", id, this.communication);
         if (this.liveClassProxy.users[id].room === name) {
           users.push([
             this.liveClassProxy.users[id].displayName,

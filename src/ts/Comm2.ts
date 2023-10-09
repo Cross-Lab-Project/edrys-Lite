@@ -176,10 +176,22 @@ export default class Comm2 {
       console.log('Peer disconnected : ', peer.id, peerID)
 
       if (peerID) {
-        this.doc.getMap('users').delete(peerID)
+        if (peerID.startsWith('Station')) {
+          this.doc.transact(() => {
+            const users = this.doc.getMap('users')
+            users.delete(peerID)
 
-        if (peerID.length < 12) {
-          this.doc.getMap('rooms').delete(peerID)
+            users.forEach((user: any, id: string) => {
+              if (user.room === peerID) {
+                user.room = 'Lobby'
+                users.set(id, user)
+              }
+            })
+
+            this.doc.getMap('rooms').delete(peerID)
+          })
+        } else {
+          this.doc.getMap('users').delete(peerID)
         }
       }
 
