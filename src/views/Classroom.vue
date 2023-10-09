@@ -12,7 +12,7 @@
             title="Back to index-page"
           >
             <a
-              href="/"
+              href="./"
               data-link="true"
             >edrys-lite</a>
 

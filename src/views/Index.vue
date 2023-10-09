@@ -161,7 +161,7 @@ export default {
 
       window["edrys"].database.put(id, classroom.data, null);
 
-      window.location.href = `?/classroom/${id}`;
+      window.location.search = `?/classroom/${id}`;
     },
 
     async createClass() {
@@ -197,7 +197,7 @@ export default {
 
       window["edrys"].database.put(id, classroom, null);
 
-      window.location.href = `?/classroom/${id}`;
+      window.location.search = `?/classroom/${id}`;
     },
   },
 };
