@@ -5,7 +5,7 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "sw": "npx workbox injectManifest workbox-config.js",
-    "build": "npx parcel build src/index.html --log-level verbose --no-source-maps --public-url ./",
+    "build": "rm -rf .parcel-cache && rm -rf dist && npx parcel build src/index.html --log-level verbose --no-source-maps --public-url ./",
     "watch": "rm -rf dist && npx parcel serve src/*.html --no-cache --no-source-maps --open --port 5999"
   },
   "author": "André Dietrich",
