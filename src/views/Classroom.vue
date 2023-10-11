@@ -1,6 +1,100 @@
 <template>
+  <v-overlay
+    v-model="state"
+    v-if="states.connectedToNetwork === null || states.webrtcSupport === null || states.receivedConfiguration === null"
+  >
+    <v-container style="width: 100vw; height: 100vh;">
+      <v-row
+        justify="center"
+        align="center"
+        style="color: white"
+      >
+        <v-col
+          cols="12"
+          sm="6"
+          md="4"
+          justify="center"
+          align="center"
+        >
+          <v-progress-circular
+            indeterminate
+            :size="88"
+            :width="7"
+            justify="center"
+            align="center"
+          ></v-progress-circular>
+
+          <div>
+            WebRTC-support
+
+            <v-btn
+              class="ma-5"
+              size="x-small"
+              color="success"
+              icon="mdi-check"
+              v-if="states.webrtcSupport === true"
+            ></v-btn>
+
+            <v-btn
+              class="ma-5"
+              size="x-small"
+              color="error"
+              icon="mdi-close"
+              v-if="states.webrtcSupport === false"
+            ></v-btn>
+
+          </div>
+
+          <div>
+            Configuration loaded
+
+            <v-btn
+              class="ma-5"
+              size="x-small"
+              color="success"
+              icon="mdi-check"
+              v-if="states.receivedConfiguration === true"
+            ></v-btn>
+
+            <v-btn
+              class="ma-5"
+              size="x-small"
+              color="error"
+              icon="mdi-close"
+              v-if="states.receivedConfiguration === false"
+            ></v-btn>
+
+          </div>
+
+          <div>
+            Connected to peer 2 peer network
+
+            <v-btn
+              class="ma-5"
+              size="x-small"
+              color="success"
+              icon="mdi-check"
+              v-if="states.connectedToNetwork === true"
+            ></v-btn>
+
+            <v-btn
+              class="ma-5"
+              size="x-small"
+              color="error"
+              icon="mdi-close"
+              v-if="states.connectedToNetwork === false"
+            ></v-btn>
+
+          </div>
+        </v-col>
+      </v-row>
+    </v-container>
+
+  </v-overlay>
   <v-app>
+
     <v-layout>
+
       <v-app-bar color="surface-variant">
         <template v-slot:prepend>
           <v-app-bar-nav-icon @click="showSideMenu = !showSideMenu"></v-app-bar-nav-icon>
@@ -214,7 +308,20 @@ export default {
 
     setTimeout(this.init, 100);
 
+    let webrtcSupport = false;
+    if (navigator.mediaDevices && navigator?.mediaDevices?.getUserMedia) {
+      // WebRTC is supported
+      webrtcSupport = true;
+    }
+
     return {
+      state: true,
+      states: {
+        webrtcSupport,
+        receivedConfiguration: null,
+        connectedToNetwork: null,
+      },
+
       database: null,
       room,
       data,
@@ -281,6 +388,8 @@ export default {
           }, 1000);
         });
 
+        this.states.receivedConfiguration = true;
+
         this.scrapeModules();
       } else {
         this.client.on("update", (room: any) => {
@@ -316,6 +425,7 @@ export default {
         });
 
         self.liveClassProxy = self.communication.getDoc();
+        self.states.connectedToNetwork = true;
 
         self.componentKey++;
       }, Math.random() * 1000 + 1000);
