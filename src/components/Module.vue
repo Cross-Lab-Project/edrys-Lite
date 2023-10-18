@@ -1,6 +1,6 @@
 <template>
   <div
-    style="height: 100%; width: 100%"
+    style="height: 100%; width: calc(100% - 1rem); margin: .5rem"
     :key="scrapedModule.url"
   >
     <iframe
@@ -85,5 +85,5 @@ export default {
 };
 </script>
   
-  <style scoped>
+<style scoped>
 </style>

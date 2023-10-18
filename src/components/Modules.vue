@@ -3,6 +3,7 @@
     <div
       class="items"
       :v-show="liveClassProxy !== null ? true: false"
+      style="max-width: 1200px"
     >
       <!-- :style="{
             height:
