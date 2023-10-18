@@ -55,10 +55,16 @@ export default {
       required: true,
     },
 
+    error: {
+      type: String,
+      default: false,
+    },
+
     title: {
       type: String,
       required: true,
     },
+
     icon: {
       type: String,
       required: true,
@@ -71,13 +77,17 @@ export default {
 
     return {
       code: input === "''\n" ? "" : input,
-      errorMessage: "",
+      errorMessage: this.error,
     };
   },
 
   watch: {
     code() {
       this.check();
+    },
+
+    errorMessage() {
+      this.$emit("update:error", this.errorMessage);
     },
   },
 

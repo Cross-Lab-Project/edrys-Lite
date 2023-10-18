@@ -37,13 +37,14 @@
                   icon="mdi-cog"
                   variant="text"
                   v-bind="props"
+                  :style="validate_config(index) ? '' : 'color: red'"
                 ></v-btn>
 
               </template>
 
               <Module
-                :id_="index"
-                :module="element"
+                v-model:module="config.modules[index]"
+                v-model:error="errors[index]"
               ></Module>
             </v-menu>
 
@@ -114,8 +115,27 @@ export default {
   },
 
   data() {
+    const errors: {
+      config: string;
+      studentConfig: string;
+      teacherConfig: string;
+      stationConfig: string;
+      showInCustom: string;
+    }[] = [];
+
+    for (let i = 0; i < this.config.modules.length; i++) {
+      errors.push({
+        config: "",
+        studentConfig: "",
+        teacherConfig: "",
+        stationConfig: "",
+        showInCustom: "",
+      });
+    }
+
     return {
       moduleImportUrl: "",
+      errors,
     };
   },
 
@@ -135,6 +155,15 @@ export default {
       this.scrapedModules[event.newIndex] = element;
 
       return true;
+    },
+
+    validate_config(i: number) {
+      return (
+        this.errors[i].config === "" &&
+        this.errors[i].studentConfig === "" &&
+        this.errors[i].teacherConfig === "" &&
+        this.errors[i].stationConfig === ""
+      );
     },
 
     validate_url(url: string) {
@@ -157,6 +186,13 @@ export default {
 
       this.config.modules.push(module);
       this.scrapedModules.push(scrapedModule);
+      this.errors.push({
+        config: "",
+        studentConfig: "",
+        teacherConfig: "",
+        stationConfig: "",
+        showInCustom: "",
+      });
 
       this.moduleImportUrl = "";
     },

@@ -27,24 +27,28 @@
       title="General settings"
       icon="mdi-script-text"
       v-model:config="module.config"
+      v-model:error="error.config"
     ></Editor>
 
     <Editor
       title="Student settings"
       icon="mdi-account-circle-outline"
       v-model:config="module.studentConfig"
+      v-model:error="error.studentConfig"
     ></Editor>
 
     <Editor
       title="Teacher settings"
       icon="mdi-clipboard-account-outline"
       v-model:config="module.teacherConfig"
+      v-model:error="error.teacherConfig"
     ></Editor>
 
     <Editor
       title="Station settings"
       icon="mdi-router-wireless"
       v-model:config="module.stationConfig"
+      v-model:error="error.stationConfig"
     ></Editor>
 
     <v-expansion-panel>
@@ -77,7 +81,14 @@ export default {
   name: "Settings-Module",
 
   props: {
-    module: { type: Object, required: true },
+    module: {
+      type: Object,
+      required: true,
+    },
+    error: {
+      type: Object,
+      required: true,
+    },
   },
 
   data() {
@@ -86,6 +97,15 @@ export default {
     }
 
     return {};
+  },
+
+  watch: {
+    error: {
+      handler() {
+        this.$emit("update:error", this.error);
+      },
+      deep: true,
+    },
   },
 
   components: { Editor },
