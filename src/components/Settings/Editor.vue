@@ -99,7 +99,7 @@ export default {
 
     check() {
       try {
-        const config = parse(this.code);
+        const config = parse(this.code) || "";
         this.errorMessage = "";
         this.$emit("update:config", config);
       } catch (e) {

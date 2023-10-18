@@ -1,3 +1,69 @@
+<script lang="ts">
+import Main from "./Settings/Main.vue";
+import Members from "./Settings/Members.vue";
+import Modules from "./Settings/Modules.vue";
+import Stations from "./Settings/Stations.vue";
+import Share from "./Settings/Share.vue";
+
+export default {
+  name: "Settings",
+
+  props: {
+    config: {
+      type: Object,
+      required: true,
+    },
+
+    scrapedModules: {
+      type: Object,
+      required: true,
+    },
+  },
+
+  emits: ["close", "saveClass", "deleteClass", "updateClass"],
+
+  data() {
+    return {
+      tab: 0,
+      configClone: JSON.parse(JSON.stringify(this.config)),
+      configChanged: false,
+    };
+  },
+
+  methods: {
+    updateModules() {
+      console.warn("updateModules", this.scrapedModules);
+    },
+    saveClass() {
+      this.$emit("saveClass", this.config);
+    },
+    deleteClass() {
+      this.$emit("deleteClass");
+    },
+    updateClass() {
+      this.$emit("updateClass", this.config);
+    },
+  },
+
+  watch: {
+    config: {
+      handler() {
+        if (JSON.stringify(this.config) !== JSON.stringify(this.configClone)) {
+          this.configChanged = true;
+        } else {
+          this.configChanged = false;
+        }
+      },
+      deep: true,
+    },
+  },
+  components: { Main, Members, Modules, Stations, Share },
+};
+</script>
+
+
+
+
 <template>
   <v-card>
     <v-toolbar
@@ -79,20 +145,22 @@
 
     <v-card-actions>
 
-      <v-badge
-        overlap
-        dot
-        color="red"
+      <v-btn
+        @click="saveClass"
+        color="primary"
         style="margin-top: 30px"
       >
-        <v-btn
-          @click="saveClass"
-          color="primary"
+        <v-icon left> mdi-upload </v-icon>
+        Save
+        <v-badge
+          overlap
+          dot
+          v-if="configChanged"
+          color="red"
+          style="position: relative; bottom: 12px; left: 6px"
         >
-          <v-icon left> mdi-upload </v-icon>
-          Save
-        </v-btn>
-      </v-badge>
+        </v-badge>
+      </v-btn>
 
       <v-menu>
         <template v-slot:activator="{ props }">
@@ -129,54 +197,4 @@
   </v-card>
 </template>
 
-
-<script lang="ts">
-import Main from "./Settings/Main.vue";
-import Members from "./Settings/Members.vue";
-import Modules from "./Settings/Modules.vue";
-import Stations from "./Settings/Stations.vue";
-import Share from "./Settings/Share.vue";
-
-export default {
-  name: "Settings",
-
-  props: {
-    config: {
-      type: Object,
-      required: true,
-    },
-
-    scrapedModules: {
-      type: Object,
-      required: true,
-    },
-  },
-
-  emits: ["close", "saveClass", "deleteClass", "updateClass"],
-
-  data() {
-    console.log("Classroom config", JSON.stringify(this.config, null, 2));
-
-    return {
-      tab: 0,
-    };
-  },
-
-  methods: {
-    updateModules() {
-      console.warn("updateModules", this.scrapedModules);
-    },
-    saveClass() {
-      this.$emit("saveClass", this.config);
-    },
-    deleteClass() {
-      this.$emit("deleteClass");
-    },
-    updateClass() {
-      this.$emit("updateClass", this.config);
-    },
-  },
-  components: { Main, Members, Modules, Stations, Share },
-};
-</script>
 
