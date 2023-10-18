@@ -48,10 +48,35 @@
               ></Module>
             </v-menu>
 
-            <v-btn
-              icon="mdi-delete"
-              variant="text"
-            ></v-btn>
+            <v-menu>
+              <template v-slot:activator="{ props }">
+
+                <v-btn
+                  v-bind="props"
+                  icon="mdi-delete"
+                  variant="text"
+                ></v-btn>
+              </template>
+
+              <v-list>
+                <v-list-item>
+                  <v-list-item-title>
+                    Delete the module and its configuration?
+                  </v-list-item-title>
+
+                  <v-btn
+                    color="red"
+                    depressed
+                    @click="deleteModule(index)"
+                    class="float-right"
+                    style="margin-top: 10px"
+                  >
+                    Yes
+                  </v-btn>
+
+                </v-list-item>
+              </v-list>
+            </v-menu>
           </template>
         </v-list-item>
       </template>
@@ -168,6 +193,12 @@ export default {
 
     validate_url(url: string) {
       return validateUrl(url);
+    },
+
+    deleteModule(index: number) {
+      this.config.modules.splice(index, 1);
+      this.scrapedModules.splice(index, 1);
+      this.errors.splice(index, 1);
     },
 
     async loadURL() {
