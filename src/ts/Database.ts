@@ -1,7 +1,8 @@
-import { Dexie } from 'dexie'
+import { Dexie, liveQuery } from 'dexie'
 
 export default class {
   private db: Dexie
+  private observables: any = {}
 
   constructor() {
     this.db = new Dexie('EdrysLite')
@@ -54,5 +55,30 @@ export default class {
 
   drop(id: string) {
     this.db['data'].delete(id)
+  }
+
+  setObservable(id: string, callback: (result: any) => void) {
+    if (this.observables[id]) {
+      this.observables[id].unsubscribe()
+      delete this.observables[id]
+    }
+
+    const db = this.db['data']
+    const observable =
+      id === '*'
+        ? liveQuery(() => db.orderBy('timestamp').desc().toArray())
+        : liveQuery(() => db.where('id').equals(id).toArray()[0])
+
+    this.observables[id] = observable.subscribe({
+      next: (result) => callback(result),
+      error: (err) => console.warn(err),
+    })
+  }
+
+  deleteObservable(id: string) {
+    if (this.observables[id]) {
+      this.observables[id].unsubscribe()
+      delete this.observables[id]
+    }
   }
 }

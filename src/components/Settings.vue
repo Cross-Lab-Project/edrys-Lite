@@ -36,6 +36,8 @@ export default {
     },
     saveClass() {
       this.$emit("saveClass", this.config);
+      this.configClone = JSON.parse(JSON.stringify(this.config));
+      this.configChanged = false;
     },
     deleteClass() {
       this.$emit("deleteClass");

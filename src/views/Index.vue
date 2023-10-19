@@ -131,35 +131,38 @@
   
   
 <script lang="ts">
-import { infoHash, getPeerID } from "../ts/Utils";
+import Database from "../ts/Database";
+import { infoHash, getPeerID, clone } from "../ts/Utils";
 
 export default {
   data() {
+    const database = new Database();
+
+    database.setObservable("*", (rooms: any) => {
+      this.classrooms = rooms;
+    });
+
     return {
-      classrooms: window["edrys"].index,
+      database,
+      classrooms: [],
       peerID: getPeerID(),
     };
   },
 
   methods: {
-    async init() {
-      console.log("init");
-    },
-
     deleteClass(id: string) {
-      window["edrys"].database.drop(id);
-      window.location.search = "";
+      this.database.drop(id);
     },
 
     forkClass(classroom: any) {
-      classroom = JSON.parse(JSON.stringify(classroom));
+      classroom = clone(classroom);
 
       console.log(classroom);
       const id = infoHash();
       classroom.data.createdBy = getPeerID();
       classroom.id = id;
 
-      window["edrys"].database.put(id, classroom.data, null);
+      this.database.put(id, classroom.data, null);
 
       window.location.search = `?/classroom/${id}`;
     },
@@ -195,7 +198,7 @@ export default {
         ],
       };
 
-      window["edrys"].database.put(id, classroom, null);
+      this.database.put(id, classroom, null);
 
       window.location.search = `?/classroom/${id}`;
     },

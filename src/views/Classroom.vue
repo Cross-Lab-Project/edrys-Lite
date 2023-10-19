@@ -295,7 +295,7 @@ import Settings from "../components/Settings.vue";
 import Modules from "../components/Modules.vue";
 
 import Database from "../ts/Database";
-import { infoHash, scrapeModule } from "../ts/Utils";
+import { infoHash, scrapeModule, clone } from "../ts/Utils";
 import Comm from "../ts/Comm";
 import Comm2 from "../ts/Comm2";
 
@@ -309,6 +309,7 @@ export default {
     setTimeout(this.init, 100);
 
     let webrtcSupport = false;
+    // @ts-ignore
     if (navigator.mediaDevices && navigator?.mediaDevices?.getUserMedia) {
       // WebRTC is supported
       webrtcSupport = true;
@@ -347,7 +348,7 @@ export default {
   watch: {
     showSettings() {
       if (!this.showSettings) {
-        this.data = this.copy(this.room.data);
+        this.data = clone(this.room.data);
       }
     },
   },
@@ -377,7 +378,7 @@ export default {
       this.room = await this.database.get(this.id);
 
       if (this.room) {
-        this.data = this.copy(this.room.data);
+        this.data = clone(this.room.data);
 
         this.client.on("update", (room: any) => {
           setTimeout(() => {
@@ -431,26 +432,19 @@ export default {
       }, Math.random() * 1000 + 1000);
     },
 
-    copy(json: any) {
-      return JSON.parse(JSON.stringify(json));
-    },
-
     saveClass(config: any) {
       this.$refs.Settings.close = true;
 
-      this.room.data = this.copy(config);
-      this.data = this.copy(config);
+      this.room.data = clone(config);
+      this.data = clone(config);
 
       console.warn("saveClass", JSON.stringify(this.data, null, 2));
 
-      this.database.update(this.copy(this.room));
-
-      //this.client.updateConfig(this.copy(this.room));
-      //this.scrapeModules();
+      this.database.update(clone(this.room));
     },
 
     usersInRoom(name: string): [string, string][] {
-      const users = [];
+      const users: [string, "black" | "grey"][] = [];
       const userID = this.communication?.getId();
 
       for (const id in this.liveClassProxy.users) {
@@ -479,7 +473,7 @@ export default {
     },
 
     updateClass(config: any) {
-      this.data = this.copy(config.data);
+      this.data = clone(config.data);
     },
   },
   components: {

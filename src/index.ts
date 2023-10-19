@@ -16,21 +16,22 @@ import Comm from './ts/Comm'
 var app
 var peers = {}
 
+var database: null | Database = null
+var index = []
+
 const init = () => {
-  const database = new Database()
+  database = new Database()
+  database.setObservable('*', (results) => {
+    index = results
+  })
 
-  window['edrys'] = {
-    database,
-    index: [],
-  }
-}
-
-const load = async () => {
-  window['edrys'].index = await window['edrys'].database.getAll()
+  database.getAll().then((results) => {
+    index = results
+  })
 }
 
 const seed = () => {
-  for (const item of window['edrys'].index) {
+  for (const item of index) {
     if (!peers[item.id]) {
       console.warn('client does not exists', item.id)
       const comm = new Comm(item)
@@ -72,11 +73,9 @@ export const navigateTo = (url: string, replace?: boolean) => {
 }
 
 const router = async () => {
-  if (!window['edrys']) {
+  if (!database) {
     init()
   }
-
-  await load()
 
   seed()
 

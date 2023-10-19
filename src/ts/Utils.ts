@@ -323,3 +323,7 @@ export function getPeerID() {
 
   return peerID
 }
+
+export function clone(object: any) {
+  return JSON.parse(JSON.stringify(object))
+}
