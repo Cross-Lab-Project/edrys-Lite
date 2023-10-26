@@ -10,35 +10,48 @@ import * as components from '../node_modules/vuetify/lib/components'
 import * as directives from '../node_modules/vuetify/lib/directives'
 import './assets/scss/main.scss'
 
-import Database from './ts/Database'
-import Comm from './ts/Comm'
+import { Database, DatabaseItem } from './ts/Database'
+import Peer from './ts/Peer'
 
 var app
-var peers = {}
-
 var database: null | Database = null
-var index = []
+var index: DatabaseItem[] = []
+var currentClassroom = 0
+var hotspot: null | Peer = null
+var ignore = ''
+
+var connection = setInterval(async () => {
+  if (database) {
+    const index = await database.getAll()
+
+    const classroom = index[Math.floor(Math.random() * index.length)]
+
+    if (hotspot) {
+      hotspot.stop()
+    }
+
+    if (classroom && ignore !== classroom.id) {
+      console.warn('classroom', classroom.id, classroom.timestamp)
+      hotspot = new Peer(classroom)
+
+      hotspot.on('setup', (result) => {
+        console.warn('update', result)
+        database?.put(result)
+      })
+    }
+  }
+}, Math.random() * 4000 + 3000)
 
 const init = () => {
   database = new Database()
   database.setObservable('*', (results) => {
+    console.warn('results', results)
     index = results
   })
 
   database.getAll().then((results) => {
     index = results
   })
-}
-
-const seed = () => {
-  for (const item of index) {
-    if (!peers[item.id]) {
-      console.warn('client does not exists', item.id)
-      const comm = new Comm(item)
-
-      peers[item.id] = comm
-    }
-  }
 }
 
 const pathToRegex = (path) =>
@@ -76,8 +89,6 @@ const router = async () => {
   if (!database) {
     init()
   }
-
-  seed()
 
   const routes = [
     { path: '/', view: Index },
@@ -126,7 +137,7 @@ const router = async () => {
   })
 
   if (params.id) {
-    params.comm = peers[params.id]
+    ignore = params.id
   }
 
   app?.unmount()

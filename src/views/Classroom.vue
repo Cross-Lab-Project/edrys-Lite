@@ -294,9 +294,9 @@ import Settings from "../components/Settings.vue";
 
 import Modules from "../components/Modules.vue";
 
-import Database from "../ts/Database";
+import { Database } from "../ts/Database";
 import { infoHash, scrapeModule, clone } from "../ts/Utils";
-import Comm from "../ts/Comm";
+import Peer from "../ts/Peer";
 import Comm2 from "../ts/Comm2";
 
 export default {
@@ -351,6 +351,10 @@ export default {
         this.data = clone(this.room.data);
       }
     },
+    room() {
+      console.warn("room-changed", this.room);
+      this.client.newSetup(clone(this.room));
+    },
   },
 
   methods: {
@@ -371,19 +375,29 @@ export default {
       this.database = new Database();
       const self = this;
 
-      if (!this.client) {
-        this.client = new Comm({ id: this.id, data: null, timestamp: 0 });
-      }
-
       this.room = await this.database.get(this.id);
+
+      if (!this.client) {
+        this.client = new Peer(
+          this.room ? this.room : { id: this.id, data: null, timestamp: 0 }
+        );
+
+        this.database.setObservable(this.id, (config: any) => {
+          console.warn("callback- Setupt", config);
+          if (config) {
+            self.room = config;
+          }
+        });
+      }
 
       if (this.room) {
         this.data = clone(this.room.data);
 
-        this.client.on("update", (room: any) => {
+        this.client.on("setup", (room: any) => {
+          console.warn("callback- Setupt", room);
           setTimeout(() => {
             if (self.room.timestamp < room.timestamp && room) {
-              self.database.put(room.id, room.data, room.timestamp);
+              self.database.put(room);
               self.init();
             }
           }, 1000);
@@ -393,15 +407,15 @@ export default {
 
         this.scrapeModules();
       } else {
-        this.client.on("update", (room: any) => {
+        this.client.on("setup", (room: any) => {
           console.warn("callback", room);
           if (room.timestamp && room) {
-            self.database.put(room.id, room.data, room.timestamp);
+            self.database.put(room);
             self.init();
           }
         });
 
-        this.client.join();
+        //this.client.join();
       }
     },
 
@@ -413,6 +427,7 @@ export default {
       }
 
       const self = this;
+      self.states.connectedToNetwork = true;
 
       setTimeout(() => {
         self.communication = new Comm2(

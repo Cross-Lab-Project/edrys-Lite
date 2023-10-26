@@ -1,6 +1,8 @@
 import { Dexie, liveQuery } from 'dexie'
 
-export default class {
+export type DatabaseItem = { id: string; timestamp: number; data: any }
+
+export class Database {
   private db: Dexie
   private observables: any = {}
 
@@ -25,32 +27,28 @@ export default class {
       })
   }
 
-  getAll() {
+  getAll(): Promise<DatabaseItem[]> {
     return this.db['data'].orderBy('timestamp').desc().toArray()
   }
 
-  async exists(id: string) {
+  async exists(id: string): Promise<boolean> {
     const item = await this.get(id)
     return item ? true : false
   }
 
-  async get(id: string) {
+  async get(id: string): Promise<DatabaseItem | null> {
     return await this.db['data'].get(id)
   }
 
-  async put(id: string, data: any, timestamp: number) {
-    console.warn('put', id, data, timestamp)
-    await this.db['data'].put({
-      id: id,
-      timestamp: timestamp || Date.now(),
-      data,
-    })
+  put(config: DatabaseItem) {
+    console.warn('put', config)
+
+    return this.db['data'].put(config)
   }
 
-  update(config: any) {
+  update(config: DatabaseItem) {
     config.timestamp = Date.now()
-    console.warn('UPDATE', config)
-    this.db['data'].put(config)
+    return this.put(config)
   }
 
   drop(id: string) {
@@ -67,7 +65,7 @@ export default class {
     const observable =
       id === '*'
         ? liveQuery(() => db.orderBy('timestamp').desc().toArray())
-        : liveQuery(() => db.where('id').equals(id).toArray()[0])
+        : liveQuery(() => db.where('id').equals(id).first())
 
     this.observables[id] = observable.subscribe({
       next: (result) => callback(result),

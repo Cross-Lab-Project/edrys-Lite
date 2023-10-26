@@ -12,30 +12,6 @@ var trackersAnnounceURLs = [
   'wss://tracker.files.fm:7073/announce',
 ]
 
-function dynamicGossip(self: Comm2) {
-  let timerID: number | null = null
-
-  function publish() {
-    if (!self.p2pt) return
-
-    try {
-      self.join('update')
-
-      timerID = window.setTimeout(publish, 10000)
-    } catch (e) {
-      timerID = null
-    }
-  }
-
-  return () => {
-    if (timerID) {
-      window.clearTimeout(timerID)
-    }
-
-    timerID = window.setTimeout(publish, 10000)
-  }
-}
-
 const ROOM = {
   studentPublicState: '',
   teacherPublicState: '',
@@ -234,9 +210,6 @@ export default class Comm2 {
     })
 
     this.p2pt.start()
-
-    //const gossip = dynamicGossip(this)
-    //gossip()
   }
 
   gotoRoom(room: string) {

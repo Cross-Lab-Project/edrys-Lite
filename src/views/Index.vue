@@ -43,6 +43,10 @@
 
               </v-card-text>
 
+              <v-card-text>
+                Timestamp: {{classroom?.timestamp}}
+              </v-card-text>
+
               <v-card-actions>
                 <v-btn
                   icon
@@ -131,7 +135,7 @@
   
   
 <script lang="ts">
-import Database from "../ts/Database";
+import { Database } from "../ts/Database";
 import { infoHash, getPeerID, clone } from "../ts/Utils";
 
 export default {
@@ -162,7 +166,7 @@ export default {
       classroom.data.createdBy = getPeerID();
       classroom.id = id;
 
-      this.database.put(id, classroom.data, null);
+      this.database.put({ id, data: classroom.data, timestamp: Date.now() });
 
       window.location.search = `?/classroom/${id}`;
     },
@@ -198,7 +202,7 @@ export default {
         ],
       };
 
-      this.database.put(id, classroom, null);
+      this.database.put({ id, classroom, timestamp: Date.now() });
 
       window.location.search = `?/classroom/${id}`;
     },
