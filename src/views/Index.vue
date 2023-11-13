@@ -1,3 +1,80 @@
+<script lang="ts">
+import { Database, DatabaseItem } from "../ts/Database";
+import { infoHash, getPeerID, clone } from "../ts/Utils";
+
+export default {
+  data() {
+    const database = new Database();
+    const classrooms: DatabaseItem[] = [];
+
+    database.setObservable("*", (rooms: any) => {
+      this.classrooms = rooms;
+    });
+
+    return {
+      database,
+      classrooms,
+      peerID: getPeerID(),
+    };
+  },
+
+  methods: {
+    deleteClass(id: string) {
+      this.database.drop(id);
+    },
+
+    forkClass(classroom: any) {
+      classroom = clone(classroom);
+
+      console.log(classroom);
+      const id = infoHash();
+      classroom.data.createdBy = getPeerID();
+      classroom.id = id;
+
+      this.database.put({ id, data: classroom.data, timestamp: Date.now() });
+
+      window.location.search = `?/classroom/${id}`;
+    },
+
+    async createClass() {
+      const id = infoHash();
+
+      const classroom = {
+        id,
+        createdBy: getPeerID(),
+        dateCreated: new Date().getTime(),
+        name: "My New Class",
+        meta: {
+          logo: "",
+          description: "",
+          selfAssign: false,
+          defaultNumberOfRooms: 0,
+        },
+        members: {
+          teacher: [],
+          student: [],
+        },
+        modules: [
+          {
+            url: "https://edrys-org.github.io/module-reference/",
+            config: "",
+            studentConfig: "",
+            teacherConfig: "",
+            stationConfig: "",
+            width: "full",
+            height: "tall",
+          },
+        ],
+      };
+
+      this.database.put({ id, classroom, timestamp: Date.now() });
+
+      window.location.search = `?/classroom/${id}`;
+    },
+  },
+};
+</script>
+
 <template>
   <v-app>
     <v-app-bar
@@ -39,8 +116,8 @@
 
               </v-card-subtitle>
 
-              <v-card-text v-html="classroom?.data?.meta?.description || 'No Description'">
-
+              <v-card-text>
+                <span v-html="classroom?.data?.meta?.description || 'No description'"></span>
               </v-card-text>
 
               <v-card-text>
@@ -132,80 +209,3 @@
   </v-app>
 
 </template>
-  
-  
-<script lang="ts">
-import { Database } from "../ts/Database";
-import { infoHash, getPeerID, clone } from "../ts/Utils";
-
-export default {
-  data() {
-    const database = new Database();
-
-    database.setObservable("*", (rooms: any) => {
-      this.classrooms = rooms;
-    });
-
-    return {
-      database,
-      classrooms: [],
-      peerID: getPeerID(),
-    };
-  },
-
-  methods: {
-    deleteClass(id: string) {
-      this.database.drop(id);
-    },
-
-    forkClass(classroom: any) {
-      classroom = clone(classroom);
-
-      console.log(classroom);
-      const id = infoHash();
-      classroom.data.createdBy = getPeerID();
-      classroom.id = id;
-
-      this.database.put({ id, data: classroom.data, timestamp: Date.now() });
-
-      window.location.search = `?/classroom/${id}`;
-    },
-
-    async createClass() {
-      const id = infoHash();
-
-      const classroom = {
-        id,
-        createdBy: getPeerID(),
-        dateCreated: new Date().getTime(),
-        name: "My New Class",
-        meta: {
-          logo: "",
-          description: "",
-          selfAssign: false,
-          defaultNumberOfRooms: 0,
-        },
-        members: {
-          teacher: [],
-          student: [],
-        },
-        modules: [
-          {
-            url: "https://edrys-org.github.io/module-reference/",
-            config: "",
-            studentConfig: "",
-            teacherConfig: "",
-            stationConfig: "",
-            width: "full",
-            height: "tall",
-          },
-        ],
-      };
-
-      this.database.put({ id, classroom, timestamp: Date.now() });
-
-      window.location.search = `?/classroom/${id}`;
-    },
-  },
-};
-</script>

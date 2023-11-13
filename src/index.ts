@@ -11,48 +11,8 @@ import * as directives from '../node_modules/vuetify/lib/directives'
 import './assets/scss/main.scss'
 
 import { Database, DatabaseItem } from './ts/Database'
-import Peer from './ts/Peer'
 
 var app
-var database: null | Database = null
-var index: DatabaseItem[] = []
-var currentClassroom = 0
-var hotspot: null | Peer = null
-var ignore = ''
-
-var connection = setInterval(async () => {
-  if (database) {
-    const index = await database.getAll()
-
-    const classroom = index[Math.floor(Math.random() * index.length)]
-
-    if (hotspot) {
-      hotspot.stop()
-    }
-
-    if (classroom && ignore !== classroom.id) {
-      console.warn('classroom', classroom.id, classroom.timestamp)
-      hotspot = new Peer(classroom)
-
-      hotspot.on('setup', (result) => {
-        console.warn('update', result)
-        database?.put(result)
-      })
-    }
-  }
-}, Math.random() * 4000 + 3000)
-
-const init = () => {
-  database = new Database()
-  database.setObservable('*', (results) => {
-    console.warn('results', results)
-    index = results
-  })
-
-  database.getAll().then((results) => {
-    index = results
-  })
-}
 
 const pathToRegex = (path) =>
   new RegExp('^' + path.replace(/\//g, '\\/').replace(/:\w+/g, '(.+)') + '$')
@@ -86,10 +46,6 @@ export const navigateTo = (url: string, replace?: boolean) => {
 }
 
 const router = async () => {
-  if (!database) {
-    init()
-  }
-
   const routes = [
     { path: '/', view: Index },
     { path: '/classroom/:id', view: Classroom, params: { station: false } },
@@ -135,10 +91,6 @@ const router = async () => {
       },
     },
   })
-
-  if (params.id) {
-    ignore = params.id
-  }
 
   app?.unmount()
   app = createApp(view, params)
