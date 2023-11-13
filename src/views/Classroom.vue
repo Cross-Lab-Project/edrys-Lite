@@ -1,3 +1,212 @@
+<script lang="ts">
+import Settings from "../components/Settings.vue";
+
+import Modules from "../components/Modules.vue";
+
+import { Database } from "../ts/Database";
+import { infoHash, scrapeModule, clone } from "../ts/Utils";
+import Peer from "../ts/Peer";
+import Comm2 from "../ts/Comm2";
+
+export default {
+  props: ["id", "comm", "station"],
+
+  data() {
+    const room: any = null;
+    const data: any = null;
+
+    setTimeout(this.init, 100);
+
+    let webrtcSupport = false;
+    // @ts-ignore
+    if (navigator.mediaDevices && navigator?.mediaDevices?.getUserMedia) {
+      // WebRTC is supported
+      webrtcSupport = true;
+    }
+
+    return {
+      state: true,
+      states: {
+        webrtcSupport,
+        receivedConfiguration: null,
+        connectedToNetwork: null,
+      },
+
+      database: null,
+      room,
+      data,
+      client: this.comm,
+      communication: null,
+
+      showSideMenu: true,
+      showSettings: false,
+
+      scrapedModules: [],
+
+      liveClassProxy: null,
+
+      isStation: this.station,
+
+      stationName: this.station ? infoHash(6) : "",
+
+      componentKey: 0,
+
+      class_id: this.id,
+    };
+  },
+  watch: {
+    showSettings() {
+      if (!this.showSettings) {
+        this.data = clone(this.room.data);
+      }
+    },
+    room() {
+      console.warn("room-changed", this.room);
+      this.client.newSetup(clone(this.room));
+    },
+  },
+
+  methods: {
+    getRooms() {
+      if (!this.liveClassProxy) return;
+
+      const sortedKeys = Object.keys(this.liveClassProxy.rooms).sort();
+
+      const rooms = {};
+      sortedKeys.forEach((key) => {
+        rooms[key] = this.liveClassProxy.rooms[key];
+      });
+
+      return rooms;
+    },
+
+    async init() {
+      this.database = new Database();
+      const self = this;
+
+      this.room = await this.database.get(this.id);
+
+      if (!this.client) {
+        this.client = new Peer(
+          this.room ? this.room : { id: this.id, data: null, timestamp: 0 }
+        );
+
+        this.database.setObservable(this.id, (config: any) => {
+          console.warn("callback- Setupt", config);
+          if (config) {
+            self.room = config;
+          }
+        });
+      }
+
+      if (this.room) {
+        this.data = clone(this.room.data);
+
+        this.client.on("setup", (room: any) => {
+          console.warn("callback- Setupt", room);
+          setTimeout(() => {
+            if (self.room.timestamp < room.timestamp && room) {
+              self.database.put(room);
+              self.init();
+            }
+          }, 1000);
+        });
+
+        this.states.receivedConfiguration = true;
+
+        this.scrapeModules();
+      } else {
+        this.client.on("setup", (room: any) => {
+          console.warn("callback", room);
+          if (room.timestamp && room) {
+            self.database.put(room);
+            self.init();
+          }
+        });
+
+        //this.client.join();
+      }
+    },
+
+    async scrapeModules() {
+      this.scrapedModules = [];
+      for (let i = 0; i < this.data.modules.length; i++) {
+        let module = await scrapeModule(this.data.modules[i]);
+        this.scrapedModules.push(module);
+      }
+
+      const self = this;
+      self.states.connectedToNetwork = true;
+
+      setTimeout(() => {
+        self.communication = new Comm2(
+          this.id,
+          this.room.data.meta.defaultNumberOfRooms,
+          this.stationName
+        );
+
+        self.communication.on("update", (config: any) => {
+          self.liveClassProxy = config.data;
+        });
+
+        self.liveClassProxy = self.communication.getDoc();
+        self.states.connectedToNetwork = true;
+
+        self.componentKey++;
+      }, Math.random() * 1000 + 1000);
+    },
+
+    saveClass(config: any) {
+      this.$refs.Settings.close = true;
+
+      this.room.data = clone(config);
+      this.data = clone(config);
+
+      console.warn("saveClass", JSON.stringify(this.data, null, 2));
+
+      this.database.update(clone(this.room));
+    },
+
+    usersInRoom(name: string): [string, string][] {
+      const users: [string, "black" | "grey"][] = [];
+      const userID = this.communication?.getId();
+
+      for (const id in this.liveClassProxy.users) {
+        if (this.liveClassProxy.users[id].room === name) {
+          users.push([
+            this.liveClassProxy.users[id].displayName,
+            userID === id ? "black" : "grey",
+          ]);
+        }
+      }
+
+      return users;
+    },
+
+    gotoRoom(name: string) {
+      this.communication?.gotoRoom(name);
+    },
+
+    addRoom() {
+      this.communication?.addRoom();
+    },
+
+    deleteClass() {
+      this.database.drop(this.room.id);
+      window.location.search = "";
+    },
+
+    updateClass(config: any) {
+      this.data = clone(config.data);
+    },
+  },
+  components: {
+    Settings,
+    Modules,
+  },
+};
+</script>
+
 <template>
   <v-overlay
     v-model="state"
@@ -287,213 +496,3 @@
   </v-app>
 
 </template>
-    
-    
-  <script lang="ts">
-import Settings from "../components/Settings.vue";
-
-import Modules from "../components/Modules.vue";
-
-import { Database } from "../ts/Database";
-import { infoHash, scrapeModule, clone } from "../ts/Utils";
-import Peer from "../ts/Peer";
-import Comm2 from "../ts/Comm2";
-
-export default {
-  props: ["id", "comm", "station"],
-
-  data() {
-    const room: any = null;
-    const data: any = null;
-
-    setTimeout(this.init, 100);
-
-    let webrtcSupport = false;
-    // @ts-ignore
-    if (navigator.mediaDevices && navigator?.mediaDevices?.getUserMedia) {
-      // WebRTC is supported
-      webrtcSupport = true;
-    }
-
-    return {
-      state: true,
-      states: {
-        webrtcSupport,
-        receivedConfiguration: null,
-        connectedToNetwork: null,
-      },
-
-      database: null,
-      room,
-      data,
-      client: this.comm,
-      communication: null,
-
-      showSideMenu: true,
-      showSettings: false,
-
-      scrapedModules: [],
-
-      liveClassProxy: null,
-
-      isStation: this.station,
-
-      stationName: this.station ? infoHash(6) : "",
-
-      componentKey: 0,
-
-      class_id: this.id,
-    };
-  },
-  watch: {
-    showSettings() {
-      if (!this.showSettings) {
-        this.data = clone(this.room.data);
-      }
-    },
-    room() {
-      console.warn("room-changed", this.room);
-      this.client.newSetup(clone(this.room));
-    },
-  },
-
-  methods: {
-    getRooms() {
-      if (!this.liveClassProxy) return;
-
-      const sortedKeys = Object.keys(this.liveClassProxy.rooms).sort();
-
-      const rooms = {};
-      sortedKeys.forEach((key) => {
-        rooms[key] = this.liveClassProxy.rooms[key];
-      });
-
-      return rooms;
-    },
-
-    async init() {
-      this.database = new Database();
-      const self = this;
-
-      this.room = await this.database.get(this.id);
-
-      if (!this.client) {
-        this.client = new Peer(
-          this.room ? this.room : { id: this.id, data: null, timestamp: 0 }
-        );
-
-        this.database.setObservable(this.id, (config: any) => {
-          console.warn("callback- Setupt", config);
-          if (config) {
-            self.room = config;
-          }
-        });
-      }
-
-      if (this.room) {
-        this.data = clone(this.room.data);
-
-        this.client.on("setup", (room: any) => {
-          console.warn("callback- Setupt", room);
-          setTimeout(() => {
-            if (self.room.timestamp < room.timestamp && room) {
-              self.database.put(room);
-              self.init();
-            }
-          }, 1000);
-        });
-
-        this.states.receivedConfiguration = true;
-
-        this.scrapeModules();
-      } else {
-        this.client.on("setup", (room: any) => {
-          console.warn("callback", room);
-          if (room.timestamp && room) {
-            self.database.put(room);
-            self.init();
-          }
-        });
-
-        //this.client.join();
-      }
-    },
-
-    async scrapeModules() {
-      this.scrapedModules = [];
-      for (let i = 0; i < this.data.modules.length; i++) {
-        let module = await scrapeModule(this.data.modules[i]);
-        this.scrapedModules.push(module);
-      }
-
-      const self = this;
-      self.states.connectedToNetwork = true;
-
-      setTimeout(() => {
-        self.communication = new Comm2(
-          this.id,
-          this.room.data.meta.defaultNumberOfRooms,
-          this.stationName
-        );
-
-        self.communication.on("update", (config: any) => {
-          self.liveClassProxy = config.data;
-        });
-
-        self.liveClassProxy = self.communication.getDoc();
-        self.states.connectedToNetwork = true;
-
-        self.componentKey++;
-      }, Math.random() * 1000 + 1000);
-    },
-
-    saveClass(config: any) {
-      this.$refs.Settings.close = true;
-
-      this.room.data = clone(config);
-      this.data = clone(config);
-
-      console.warn("saveClass", JSON.stringify(this.data, null, 2));
-
-      this.database.update(clone(this.room));
-    },
-
-    usersInRoom(name: string): [string, string][] {
-      const users: [string, "black" | "grey"][] = [];
-      const userID = this.communication?.getId();
-
-      for (const id in this.liveClassProxy.users) {
-        if (this.liveClassProxy.users[id].room === name) {
-          users.push([
-            this.liveClassProxy.users[id].displayName,
-            userID === id ? "black" : "grey",
-          ]);
-        }
-      }
-
-      return users;
-    },
-
-    gotoRoom(name: string) {
-      this.communication?.gotoRoom(name);
-    },
-
-    addRoom() {
-      this.communication?.addRoom();
-    },
-
-    deleteClass() {
-      this.database.drop(this.room.id);
-      window.location.search = "";
-    },
-
-    updateClass(config: any) {
-      this.data = clone(config.data);
-    },
-  },
-  components: {
-    Settings,
-    Modules,
-  },
-};
-</script>
