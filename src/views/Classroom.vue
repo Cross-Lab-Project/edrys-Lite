@@ -3,40 +3,50 @@ import Settings from "../components/Settings.vue";
 
 import Modules from "../components/Modules.vue";
 
-import { Database } from "../ts/Database";
-import { infoHash, scrapeModule, clone } from "../ts/Utils";
+import { Database, DatabaseItem } from "../ts/Database";
+import { infoHash, scrapeModule, clone, getPeerID } from "../ts/Utils";
+
+import { onMounted } from "vue";
 import Peer from "../ts/Peer";
-import Comm2 from "../ts/Comm2";
 
 export default {
-  props: ["id", "comm", "station"],
+  props: ["id", "station"],
 
   data() {
-    const room: any = null;
+    const database = new Database();
+
+    const room: DatabaseItem | null = null;
     const data: any = null;
+    const communication: Peer | null = null;
 
-    setTimeout(this.init, 100);
+    //setTimeout(this.init, 100);
 
-    let webrtcSupport = false;
+    let webRTCSupport = false;
     // @ts-ignore
     if (navigator.mediaDevices && navigator?.mediaDevices?.getUserMedia) {
       // WebRTC is supported
-      webrtcSupport = true;
+      webRTCSupport = true;
     }
+
+    onMounted(() => {
+      this.init();
+    });
 
     return {
       state: true,
       states: {
-        webrtcSupport,
-        receivedConfiguration: null,
-        connectedToNetwork: null,
+        webRTCSupport,
+        receivedConfiguration: true,
+        connectedToNetwork: true,
       },
 
-      database: null,
+      database,
       room,
       data,
-      client: this.comm,
-      communication: null,
+
+      communication,
+      peerID: getPeerID(),
+      isOwner: false,
 
       showSideMenu: true,
       showSettings: false,
@@ -50,8 +60,6 @@ export default {
       stationName: this.station ? infoHash(6) : "",
 
       componentKey: 0,
-
-      class_id: this.id,
     };
   },
   watch: {
@@ -61,12 +69,45 @@ export default {
       }
     },
     room() {
-      console.warn("room-changed", this.room);
-      this.client.newSetup(clone(this.room));
+      console.warn("room-changed", JSON.stringify(this.room, null, 2));
+      this.communication.newSetup(clone(this.room));
     },
   },
 
   methods: {
+    async init() {
+      this.room = await this.database.get(this.id);
+      this.isOwner = this.room.data.createdBy === this.peerID;
+
+      this.communication = new Peer(
+        this.room ? this.room : { id: this.id, data: null, timestamp: 0 }
+      );
+
+      const self = this;
+
+      this.database.setObservable(this.id, (config: DatabaseItem) => {
+        console.warn("callbackDB", config);
+        if (config) {
+          self.room = config;
+        }
+      });
+
+      if (this.room) {
+        this.data = clone(this.room.data);
+        this.scrapeModules();
+      }
+
+      this.communication.on("setup", (room: DatabaseItem) => {
+        console.warn("callback", room);
+        if (room.timestamp && room) {
+          self.database.put(room);
+          self.init();
+        }
+      });
+
+      this.communication.join();
+    },
+
     getRooms() {
       if (!this.liveClassProxy) return;
 
@@ -80,54 +121,6 @@ export default {
       return rooms;
     },
 
-    async init() {
-      this.database = new Database();
-      const self = this;
-
-      this.room = await this.database.get(this.id);
-
-      if (!this.client) {
-        this.client = new Peer(
-          this.room ? this.room : { id: this.id, data: null, timestamp: 0 }
-        );
-
-        this.database.setObservable(this.id, (config: any) => {
-          console.warn("callback- Setupt", config);
-          if (config) {
-            self.room = config;
-          }
-        });
-      }
-
-      if (this.room) {
-        this.data = clone(this.room.data);
-
-        this.client.on("setup", (room: any) => {
-          console.warn("callback- Setupt", room);
-          setTimeout(() => {
-            if (self.room.timestamp < room.timestamp && room) {
-              self.database.put(room);
-              self.init();
-            }
-          }, 1000);
-        });
-
-        this.states.receivedConfiguration = true;
-
-        this.scrapeModules();
-      } else {
-        this.client.on("setup", (room: any) => {
-          console.warn("callback", room);
-          if (room.timestamp && room) {
-            self.database.put(room);
-            self.init();
-          }
-        });
-
-        //this.client.join();
-      }
-    },
-
     async scrapeModules() {
       this.scrapedModules = [];
       for (let i = 0; i < this.data.modules.length; i++) {
@@ -138,6 +131,7 @@ export default {
       const self = this;
       self.states.connectedToNetwork = true;
 
+      /*
       setTimeout(() => {
         self.communication = new Comm2(
           this.id,
@@ -154,6 +148,7 @@ export default {
 
         self.componentKey++;
       }, Math.random() * 1000 + 1000);
+      */
     },
 
     saveClass(config: any) {
@@ -162,20 +157,17 @@ export default {
       this.room.data = clone(config);
       this.data = clone(config);
 
-      console.warn("saveClass", JSON.stringify(this.data, null, 2));
-
       this.database.update(clone(this.room));
     },
 
     usersInRoom(name: string): [string, string][] {
       const users: [string, "black" | "grey"][] = [];
-      const userID = this.communication?.getId();
 
       for (const id in this.liveClassProxy.users) {
         if (this.liveClassProxy.users[id].room === name) {
           users.push([
             this.liveClassProxy.users[id].displayName,
-            userID === id ? "black" : "grey",
+            this.peerID === id ? "black" : "grey",
           ]);
         }
       }
@@ -210,7 +202,7 @@ export default {
 <template>
   <v-overlay
     v-model="state"
-    v-if="states.connectedToNetwork === null || states.webrtcSupport === null || states.receivedConfiguration === null"
+    v-if="states.connectedToNetwork === null || states.webRTCSupport === null || states.receivedConfiguration === null"
   >
     <v-container style="width: 100vw; height: 100vh;">
       <v-row
@@ -241,7 +233,7 @@ export default {
               size="x-small"
               color="success"
               icon="mdi-check"
-              v-if="states.webrtcSupport === true"
+              v-if="states.webRTCSupport === true"
             ></v-btn>
 
             <v-btn
@@ -249,7 +241,7 @@ export default {
               size="x-small"
               color="error"
               icon="mdi-close"
-              v-if="states.webrtcSupport === false"
+              v-if="states.webRTCSupport === false"
             ></v-btn>
 
           </div>
@@ -391,7 +383,7 @@ export default {
                 icon="mdi-cog"
                 @click="showSettings = !showSettings"
                 variant="text"
-                v-if="!isStation && room?.data?.createdBy === communication?.getId()"
+                v-if="!isStation && isOwner"
               ></v-btn>
             </template>
 
@@ -438,7 +430,7 @@ export default {
               block
               class="mb-2"
               @click="addRoom"
-              v-if="!isStation && room?.data?.createdBy === communication?.getId()"
+              v-if="!isStation && isOwner"
             >
               <v-icon left>mdi-forum</v-icon>
               New room
@@ -451,13 +443,8 @@ export default {
         <v-col>
 
           <Modules
-            :role="isStation ? 'station'
-            :
-            (room.data.createdBy === communication?.getId()
-            ? 'teacher'
-            : 'student'
-            )"
-            :username_="communication?.getId()"
+            :role="isStation ? 'station' : (isOwner ? 'teacher' : 'student' )"
+            :username_="peerID"
             :liveClassProxy="liveClassProxy"
             :scrapedModules_="scrapedModules"
             :communication="communication"
@@ -485,6 +472,7 @@ export default {
       <Settings
         ref="Settings"
         @close="showSettings = false"
+        v-if="data"
         :config="data"
         :scrapedModules="scrapedModules"
         @saveClass="saveClass"

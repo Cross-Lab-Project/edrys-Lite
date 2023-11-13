@@ -1,5 +1,4 @@
 import P2PT from 'p2pt'
-import { Database } from './Database'
 
 var trackersAnnounceURLs = [
   'wss://tracker.openwebtorrent.com',
@@ -20,6 +19,8 @@ export default class Peer {
 
   private callback: {} = {}
   private callbackUpdate: {} = {}
+
+  private peerID: string
 
   constructor(
     config: { id: string; data: any; timestamp: number },

@@ -325,5 +325,9 @@ export function getPeerID() {
 }
 
 export function clone(object: any) {
-  return JSON.parse(JSON.stringify(object))
+  console.warn(
+    'WWWWWWWWWWWWWWWWWWWWWWWWWWWW->',
+    JSON.stringify(object, null, 2)
+  )
+  if (object !== undefined) return JSON.parse(JSON.stringify(object))
 }

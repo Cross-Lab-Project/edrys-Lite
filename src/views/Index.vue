@@ -39,7 +39,7 @@ export default {
     async createClass() {
       const id = infoHash();
 
-      const classroom = {
+      const data = {
         id,
         createdBy: getPeerID(),
         dateCreated: new Date().getTime(),
@@ -67,7 +67,7 @@ export default {
         ],
       };
 
-      this.database.put({ id, classroom, timestamp: Date.now() });
+      this.database.put({ id, data, timestamp: Date.now() });
 
       window.location.search = `?/classroom/${id}`;
     },
