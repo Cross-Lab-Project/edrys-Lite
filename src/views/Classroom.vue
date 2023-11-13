@@ -77,7 +77,6 @@ export default {
   methods: {
     async init() {
       this.room = await this.database.get(this.id);
-      this.isOwner = this.room.data.createdBy === this.peerID;
 
       this.communication = new Peer(
         this.room ? this.room : { id: this.id, data: null, timestamp: 0 }
@@ -94,6 +93,7 @@ export default {
 
       if (this.room) {
         this.data = clone(this.room.data);
+        this.isOwner = this.room.data.createdBy === this.peerID;
         this.scrapeModules();
       }
 
@@ -104,8 +104,6 @@ export default {
           self.init();
         }
       });
-
-      this.communication.join();
     },
 
     getRooms() {
@@ -130,6 +128,14 @@ export default {
 
       const self = this;
       self.states.connectedToNetwork = true;
+
+      this.communication.on("room", (config: any) => {
+        self.liveClassProxy = config;
+      });
+
+      self.liveClassProxy = this.communication.join(this.stationName);
+
+      this.communication.join(this.stationName);
 
       /*
       setTimeout(() => {
@@ -176,6 +182,7 @@ export default {
     },
 
     gotoRoom(name: string) {
+      console.warn("YYYYYYYYYYYYYYYYYYYYYYYYYYY", name);
       this.communication?.gotoRoom(name);
     },
 

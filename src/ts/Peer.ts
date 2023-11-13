@@ -1,4 +1,7 @@
 import P2PT from 'p2pt'
+import { getPeerID } from './Utils'
+import * as Y from 'yjs'
+import { encode, decode } from 'uint8-to-base64'
 
 var trackersAnnounceURLs = [
   'wss://tracker.openwebtorrent.com',
@@ -9,8 +12,17 @@ var trackersAnnounceURLs = [
   'wss://tracker.files.fm:7073/announce',
 ]
 
+const ROOM = {
+  studentPublicState: '',
+  teacherPublicState: '',
+  teacherPrivateState: '',
+}
+
 export default class Peer {
   private p2pt: P2PT
+  public doc: Y.Doc = new Y.Doc()
+  private observer: any
+
   private id: string
   private data: any
   private timestamp: number
@@ -21,6 +33,22 @@ export default class Peer {
   private callbackUpdate: {} = {}
 
   private peerID: string
+  private stationID: string = ''
+  private timestamp_join: number = 0
+
+  private userSettings: any = {
+    displayName: '',
+    room: 'Lobby',
+    role: 'student',
+    dateJoined: Date.now(),
+    handRaised: false,
+    connections: [
+      {
+        id: '',
+        target: {},
+      },
+    ],
+  }
 
   constructor(
     config: { id: string; data: any; timestamp: number },
@@ -29,6 +57,7 @@ export default class Peer {
     this.id = config.id
     this.data = config.data
     this.timestamp = config.timestamp
+    this.peerID = getPeerID()
 
     this.on('setup', setup)
 
@@ -42,7 +71,7 @@ export default class Peer {
 
     this.p2pt.on('peerconnect', (peer) => {
       //console.warn('Peer connected : ' + peer.id, peer)
-      self.peers[peer.id] = peer
+      self.peers[peer.id] = { peer, id: null }
 
       self.publishSetup(peer.id)
     })
@@ -63,6 +92,7 @@ export default class Peer {
           if (timestamp < self.timestamp) {
             console.warn('sending update')
             self.broadcast({
+              id: self.peerID,
               topic: 'setup-update',
               data: {
                 data: self.data,
@@ -86,6 +116,31 @@ export default class Peer {
 
           break
         }
+        case 'room-join': {
+          this.peers[peer.id].id = msg.id
+          const data = decode(msg.data.config)
+          if (msg.data.timestamp < self.timestamp_join) {
+            self.timestamp_join = msg.data.timestamp
+
+            self.doc.getMap('users').unobserve(this.observer)
+            self.doc.getMap('rooms').unobserve(this.observer)
+
+            self.doc = new Y.Doc()
+            Y.applyUpdate(this.doc, data)
+            self.initDoc(false)
+            self.join('room-update')
+            self.update('room')
+          } else {
+            Y.applyUpdate(this.doc, data)
+          }
+
+          break
+        }
+        case 'room-update':
+          this.peers[peer.id].id = msg.id
+          const data = decode(msg.data.config)
+          Y.applyUpdate(this.doc, data)
+          break
         default:
           console.warn('unknown command', msg.topic)
       }
@@ -100,7 +155,7 @@ export default class Peer {
     this.timestamp = config.timestamp
   }
 
-  update(event: 'setup') {
+  update(event: 'setup' | 'room') {
     const callback = this.callback[event]
 
     switch (event) {
@@ -117,10 +172,19 @@ export default class Peer {
         }
         break
       }
+      case 'room': {
+        if (callback) {
+          callback(this.doc.toJSON())
+          this.callbackUpdate[event] = false
+        } else {
+          this.callbackUpdate[event] = true
+        }
+        break
+      }
     }
   }
 
-  on(event: 'setup', callback: any) {
+  on(event: 'setup' | 'room', callback: any) {
     if (callback) {
       this.callback[event] = callback
 
@@ -137,6 +201,7 @@ export default class Peer {
     this.timestamp = timestamp
 
     this.broadcast({
+      id: this.peerID,
       topic: 'update-setup',
       data: {
         data,
@@ -145,14 +210,15 @@ export default class Peer {
     })
   }
 
-  broadcast(msg: { topic: string; data: any }) {
+  broadcast(msg: { id: string; topic: string; data: any }) {
     if (!this.p2pt) {
       return
     }
 
     for (const id in this.peers) {
       try {
-        this.p2pt.send(this.peers[id], msg)
+        console.warn('broadcast', id, msg)
+        this.p2pt.send(this.peers[id].peer, msg)
       } catch (e) {
         console.warn(e.message)
         delete this.peers[id]
@@ -179,6 +245,7 @@ export default class Peer {
 
   publishSetup(peerID: string) {
     const message = {
+      id: this.peerID,
       topic: 'setup',
       data: {
         data: this.data,
@@ -187,10 +254,113 @@ export default class Peer {
     }
 
     if (peerID && this.peers[peerID]) {
-      this.p2pt.send(this.peers[peerID], message)
+      this.p2pt.send(this.peers[peerID].peer, message)
     } else {
       this.broadcast(message)
     }
+  }
+
+  addRoom() {
+    const rooms = this.doc.getMap('rooms')
+    const room = 'Room ' + rooms.size
+    rooms.set(room, {
+      studentPublicState: '',
+      teacherPublicState: '',
+      teacherPrivateState: '',
+    })
+  }
+
+  gotoRoom(room: string) {
+    console.warn('gotoRoom', room)
+    this.userSettings.room = room
+    this.doc.getMap('users').set(this.peerID, this.userSettings)
+    console.warn('gotoRoom', this.doc.toJSON())
+  }
+
+  join(stationID: string) {
+    if (stationID) {
+      this.stationID = 'Station ' + stationID
+      this.peerID = this.stationID
+    }
+
+    this.userSettings.displayName = this.peerID
+
+    this.timestamp_join = Date.now()
+
+    this.initDoc(true, this.data.meta.defaultNumberOfRooms)
+
+    setTimeout(() => {
+      this.enterClassroom('room-join')
+    }, 1000)
+
+    return this.doc.toJSON()
+  }
+
+  initDoc(full: boolean = true, defaultRooms: number = 0) {
+    const clientID = this.doc.clientID
+    this.doc.clientID = 0
+
+    const rooms = this.doc.getMap('rooms')
+    const users = this.doc.getMap('users')
+
+    if (full) {
+      rooms.set('Lobby', ROOM)
+
+      if (defaultRooms > 0) {
+        for (let i = 0; i < defaultRooms; i++) {
+          rooms.set('Room ' + i, ROOM)
+        }
+      }
+    }
+
+    if (this.stationID) {
+      rooms.set(this.stationID, ROOM)
+
+      this.userSettings.room = this.stationID
+    }
+
+    users.set(this.peerID, this.userSettings)
+
+    this.doc.clientID = clientID
+
+    const self = this
+
+    this.observer = (event: any) => {
+      if (self.stationID) {
+        if (users.has(self.peerID) && rooms.has(self.stationID)) {
+          self.update('room')
+          self.enterClassroom('room-join')
+        } else {
+          self.doc.transact(() => {
+            rooms.set(self.stationID, ROOM)
+            users.set(self.peerID, self.userSettings)
+          })
+        }
+      } else {
+        console.log('Room configuration has changed ... updating')
+        if (users.has(self.peerID)) {
+          self.update('room')
+          self.enterClassroom('room-update')
+        } else {
+          users.set(self.peerID, self.userSettings)
+        }
+      }
+    }
+
+    rooms.observe(this.observer)
+    users.observe(this.observer)
+  }
+
+  enterClassroom(type: 'room-join' | 'room-update') {
+    console.warn('XXXXXXXXXXXXXXXXXXXXX enterClassroom', type)
+    this.broadcast({
+      id: this.peerID,
+      topic: type,
+      data: {
+        config: encode(Y.encodeStateAsUpdate(this.doc)),
+        timestamp: this.timestamp_join,
+      },
+    })
   }
 }
 
