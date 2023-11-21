@@ -106,7 +106,7 @@ export default class Peer {
     })
 
     this.p2pt.on('msg', (peer, msg) => {
-      console.log(`Got message from ${peer.id} : ${JSON.stringify(msg)}`)
+      // console.log(`Got message from ${peer.id} : ${JSON.stringify(msg)}`)
 
       switch (msg.topic) {
         case 'setup': {
@@ -114,7 +114,6 @@ export default class Peer {
 
           if (timestamp < self.timestamp.config) {
             self.broadcast({
-              id: self.peerID,
               topic: 'setup-update',
               data: {
                 data: self.data,
@@ -138,15 +137,21 @@ export default class Peer {
 
           break
         }
+
+        case 'room': {
+          self.update('message', msg.data.msg)
+          break
+        }
+
         case 'room-join': {
           if (msg.id === this.peerID) {
             break
           }
 
           if (!this.peers[peer.id]) {
-            this.peers[peer.id] = { peer, id: msg.id }
+            self.peers[peer.id] = { peer, id: msg.id }
           } else {
-            this.peers[peer.id].id = msg.id
+            self.peers[peer.id].id = msg.id
           }
 
           const data = decode(msg.data.config)
@@ -196,10 +201,16 @@ export default class Peer {
     this.publishSetup()
   }
 
-  update(event: 'setup' | 'room') {
+  update(event: 'setup' | 'room' | 'message', message?: any) {
     const callback = this.callback[event]
 
     switch (event) {
+      case 'message': {
+        if (callback) {
+          callback(message)
+        }
+        break
+      }
       case 'setup': {
         if (callback) {
           callback({
@@ -242,7 +253,6 @@ export default class Peer {
     this.timestamp.config = timestamp
 
     this.broadcast({
-      id: this.peerID,
       topic: 'update-setup',
       data: {
         data,
@@ -251,17 +261,41 @@ export default class Peer {
     })
   }
 
-  broadcast(msg: { id: string; topic: string; data: any }) {
+  broadcast(msg: { topic: string; data: any }) {
     if (!this.p2pt) {
       return
     }
 
-    for (const id in this.peers) {
-      try {
-        this.p2pt.send(this.peers[id].peer, msg)
-      } catch (e) {
-        console.warn(e.message)
-        delete this.peers[id]
+    msg.id = this.peerID
+
+    if (msg.topic === 'room') {
+      const users = this.doc.getMap('users').toJSON()
+
+      msg.data.msg.date = Date.now()
+
+      for (const id in this.peers) {
+        if (this.peers[id].id) {
+          if (users[this.peers[id].id]?.room === msg.data.room) {
+            try {
+              this.p2pt.send(this.peers[id].peer, msg)
+            } catch (e) {
+              //console.warn(e.message)
+              //delete this.peers[id]
+            }
+          }
+        }
+      }
+
+      // as in the original Edrys ... messages are send back to the sender
+      this.update('message', msg.data.msg)
+    } else {
+      for (const id in this.peers) {
+        try {
+          this.p2pt.send(this.peers[id].peer, msg)
+        } catch (e) {
+          console.warn(e.message)
+          delete this.peers[id]
+        }
       }
     }
   }
@@ -285,7 +319,6 @@ export default class Peer {
 
   publishSetup(peerID?: string) {
     const message = {
-      id: this.peerID,
       topic: 'setup',
       data: {
         data: this.data,
@@ -329,7 +362,6 @@ export default class Peer {
 
     const self = this
     setTimeout(() => {
-      console.warn('setTimeout: enterClassroom', 'room-join')
       self.enterClassroom('room-join')
     }, 1000)
 
@@ -387,7 +419,6 @@ export default class Peer {
 
   enterClassroom(type: 'room-join' | 'room-update') {
     this.broadcast({
-      id: this.peerID,
       topic: type,
       data: {
         config: encode(Y.encodeStateAsUpdate(this.doc)),

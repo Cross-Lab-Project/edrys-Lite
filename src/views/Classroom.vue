@@ -75,14 +75,15 @@ export default {
       this.configuration = await this.database.get(this.id);
 
       this.communication = new Peer(
-        this.configuration ? this.configuration : { id: this.id, data: null, timestamp: 0 }
+        this.configuration
+          ? this.configuration
+          : { id: this.id, data: null, timestamp: 0 }
       );
 
       const self = this;
 
       this.database.setObservable(this.id, (config: DatabaseItem) => {
         if (config) {
-          console.warn("db update", config);
           self.configuration = config;
           self.communication?.newSetup(config);
         }
@@ -95,7 +96,6 @@ export default {
       }
 
       this.communication.on("setup", (configuration: DatabaseItem) => {
-        console.warn("callback", configuration);
         if (configuration.timestamp && configuration) {
           self.database.put(configuration);
           self.init();
@@ -130,10 +130,7 @@ export default {
         self.liveClassProxy = config;
       });
 
-      console.warn("this.station", this.stationName);
       self.liveClassProxy = this.communication.join(this.stationName);
-
-      
 
       /*
       setTimeout(() => {
@@ -180,7 +177,6 @@ export default {
     },
 
     gotoRoom(name: string) {
-      
       this.communication?.gotoRoom(name);
     },
 
@@ -197,7 +193,7 @@ export default {
       this.data = clone(config.data);
     },
   },
- 
+
   components: {
     Settings,
     Modules,
@@ -300,9 +296,7 @@ export default {
             style="color: white; text-decoration: none"
             title="Back to index-page"
           >
-            <a href="./" style="color: white; text-decoration: none"
-              >edrys-lite</a
-            >
+            <a href="./" style="color: white; text-decoration: none">edrys-lite</a>
           </v-app-bar-title>
         </template>
 

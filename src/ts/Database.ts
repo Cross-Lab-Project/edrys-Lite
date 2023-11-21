@@ -41,8 +41,6 @@ export class Database {
   }
 
   put(config: DatabaseItem) {
-    console.warn('put', config)
-
     return this.db['data'].put(config)
   }
 

@@ -1,44 +1,4 @@
-<template>
-  <div :key="role">
-    <div
-      class="items"
-      :v-show="liveClassProxy !== null ? true: false"
-      style="max-width: 1200px"
-    >
-      <!-- :style="{
-            height:
-              m.height == 'tall'
-                ? '700px'
-                : m.height == 'short'
-                ? '300px'
-                : '500px',
-          }" -->
-      <Module
-        class="item"
-        v-for="(m, i) in scrapedModulesFilter"
-        :key="i"
-        :username="username"
-        :live-class-proxy="liveClassProxy"
-        :scrapedModule="m"
-        :role="role"
-        :class_id="class_id"
-      >
-      </Module>
-    </div>
-
-    <v-card v-if="!scrapedModules_.length">
-      <v-card-text v-if="role == 'teacher' || role == 'station'">
-        Sorry, looks like you have not loaded up any {{ modulesType }} modules.
-        Add some in the class settings to get started.
-      </v-card-text>
-      <v-card-text v-if="role == 'student'">
-        Sorry, it looks like the class creators have not added any modules yet.
-      </v-card-text>
-    </v-card>
-  </div>
-</template>
-  
-  <script lang="ts">
+<script lang="ts">
 import Module from "./Module.vue";
 export default {
   components: { Module },
@@ -61,10 +21,7 @@ export default {
   },
   computed: {
     roomName() {
-      return (
-        this.liveClassProxy.users[this.username]?.room ||
-        "Station " + this.username
-      );
+      return this.liveClassProxy.users[this.username]?.room || "Station " + this.username;
     },
     modulesType() {
       return this.roomName.startsWith("Station ") ? "station" : "chat";
@@ -93,12 +50,8 @@ export default {
     const iframes = document.getElementsByTagName("iframe");
     this.communication.on(
       "message",
-      (msg: {
-        subject: string;
-        body: any;
-        module_url: string;
-        date: number;
-      }) => {
+      (msg: { subject: string; body: any; module_url: string; date: number }) => {
+        
         for (let i = 0; i < iframes.length; i++) {
           iframes[i].contentWindow.postMessage(
             {
@@ -137,20 +90,63 @@ export default {
     async sendMessage(subject, body, module_url) {
       if (body !== undefined) {
         const data = {
-          from: this.username /* Email if teacher, name if station */,
-          subject: subject,
-          body: body,
-          module: module_url,
+          msg: {
+            from: this.username /* Email if teacher, name if station */,
+            subject: subject,
+            body: body,
+            module: module_url,
+          },
+          room: this.roomName,
         };
 
-        this.communication.broadcast(data, this.roomName);
+        this.communication.broadcast({ topic: "room", data });
       }
     },
   },
 };
 </script>
-  
-  <style scoped>
+
+<template>
+  <div :key="role">
+    <div
+      class="items"
+      :v-show="liveClassProxy !== null ? true : false"
+      style="max-width: 1200px"
+    >
+      <!-- :style="{
+            height:
+              m.height == 'tall'
+                ? '700px'
+                : m.height == 'short'
+                ? '300px'
+                : '500px',
+          }" -->
+      <Module
+        class="item"
+        v-for="(m, i) in scrapedModulesFilter"
+        :key="i"
+        :username="username"
+        :live-class-proxy="liveClassProxy"
+        :scrapedModule="m"
+        :role="role"
+        :class_id="class_id"
+      >
+      </Module>
+    </div>
+
+    <v-card v-if="!scrapedModules_.length">
+      <v-card-text v-if="role == 'teacher' || role == 'station'">
+        Sorry, looks like you have not loaded up any {{ modulesType }} modules. Add some
+        in the class settings to get started.
+      </v-card-text>
+      <v-card-text v-if="role == 'student'">
+        Sorry, it looks like the class creators have not added any modules yet.
+      </v-card-text>
+    </v-card>
+  </div>
+</template>
+
+<style scoped>
 .item {
   height: 700px !important;
 }
