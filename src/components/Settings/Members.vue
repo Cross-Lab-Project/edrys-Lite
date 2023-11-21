@@ -1,27 +1,15 @@
 <template>
-
-  <v-alert
-    outlined
-    dense
-    type="info"
-    text="Invite your users in by sharing this link: "
-  >
+  <v-alert outlined dense type="info" text="Invite your users in by sharing this link: ">
     <v-container>
       <a :href="url">{{ url }}</a>
     </v-container>
 
     <template v-slot:append>
-      <v-btn
-        icon="mdi-content-copy"
-        @click="copyUrl"
-        variant="text"
-      ></v-btn>
+      <v-btn icon="mdi-content-copy" @click="copyUrl" variant="text"></v-btn>
     </template>
   </v-alert>
-
 </template>
-  
-  
+
 <script lang="ts">
 import { copyUrl } from "../../ts/Utils";
 
@@ -48,5 +36,3 @@ export default {
   },
 };
 </script>
-  
-  

@@ -1,5 +1,4 @@
 <template>
-
   <v-text-field
     v-model="config.name"
     :counter="20"
@@ -34,7 +33,6 @@
     label="Enable self-assignment"
     outlined
   ></v-checkbox>
-
 </template>
 
 <script lang="ts">
@@ -53,7 +51,3 @@ export default {
   },
 };
 </script>
-  
-  
-  
-  

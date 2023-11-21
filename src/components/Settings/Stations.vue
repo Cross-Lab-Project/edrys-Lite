@@ -1,5 +1,4 @@
 <template>
-
   <v-alert
     outlined
     dense
@@ -7,24 +6,15 @@
     text="To add a new station, simply open this link on the client device: "
   >
     <v-container>
-      <a
-        :href="url"
-        target="_blank"
-      >{{ url }}</a>
+      <a :href="url" target="_blank">{{ url }}</a>
     </v-container>
 
     <template v-slot:append>
-      <v-btn
-        icon="mdi-content-copy"
-        @click="copyUrl"
-        variant="text"
-      ></v-btn>
+      <v-btn icon="mdi-content-copy" @click="copyUrl" variant="text"></v-btn>
     </template>
   </v-alert>
-
 </template>
-  
-  
+
 <script lang="ts">
 import { copyUrl } from "../../ts/Utils";
 
@@ -51,5 +41,3 @@ export default {
   },
 };
 </script>
-  
-  

@@ -1,12 +1,7 @@
 <template>
-
-  <v-expansion-panels
-    variant="accordion"
-    style="min-width: 400px"
-  >
+  <v-expansion-panels variant="accordion" style="min-width: 400px">
     <v-expansion-panel>
       <v-expansion-panel-title>
-
         URL
 
         <template v-slot:actions>
@@ -20,7 +15,6 @@
           v-model="module.url"
         ></v-text-field>
       </v-expansion-panel-text>
-
     </v-expansion-panel>
 
     <Editor
@@ -53,7 +47,6 @@
 
     <v-expansion-panel>
       <v-expansion-panel-title>
-
         Show in
 
         <template v-slot:actions>
@@ -67,11 +60,8 @@
           v-model="module.showInCustom"
         ></v-text-field>
       </v-expansion-panel-text>
-
     </v-expansion-panel>
-
   </v-expansion-panels>
-
 </template>
 
 <script lang="ts">

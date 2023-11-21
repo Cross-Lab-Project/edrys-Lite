@@ -63,33 +63,19 @@ export default {
 };
 </script>
 
-
-
-
 <template>
   <v-card>
-    <v-toolbar
-      dark
-      flat
-    >
+    <v-toolbar dark flat>
       <v-toolbar-title>Class Settings</v-toolbar-title>
 
       <v-spacer></v-spacer>
 
-      <v-btn
-        icon
-        @click="$emit('close')"
-      >
+      <v-btn icon @click="$emit('close')">
         <v-icon>mdi-close</v-icon>
       </v-btn>
 
       <template v-slot:extension>
-        <v-tabs
-          v-model="tab"
-          fixed-tabs
-          center-active
-          show-arrows
-        >
+        <v-tabs v-model="tab" fixed-tabs center-active show-arrows>
           <v-tab active>
             <v-icon left> mdi-book-open-outline </v-icon>
             Settings
@@ -114,11 +100,7 @@ export default {
       </template>
     </v-toolbar>
     <v-card-text style="height: 565px">
-      <v-window
-        v-model="tab"
-        class="pt-5"
-      >
-
+      <v-window v-model="tab" class="pt-5">
         <v-window-item>
           <Main :config="config"></Main>
         </v-window-item>
@@ -128,10 +110,7 @@ export default {
         </v-window-item>
 
         <v-window-item>
-          <Modules
-            :config="config"
-            :scraped-modules="scrapedModules"
-          ></Modules>
+          <Modules :config="config" :scraped-modules="scrapedModules"></Modules>
         </v-window-item>
 
         <v-window-item>
@@ -142,16 +121,10 @@ export default {
           <Share :config="config"></Share>
         </v-window-item>
       </v-window>
-
     </v-card-text>
 
     <v-card-actions>
-
-      <v-btn
-        @click="saveClass"
-        color="primary"
-        style="margin-top: 30px"
-      >
+      <v-btn @click="saveClass" color="primary" style="margin-top: 30px">
         <v-icon left> mdi-upload </v-icon>
         Save
         <v-badge
@@ -169,7 +142,7 @@ export default {
           <v-btn
             color=""
             v-bind="props"
-            style="margin-top: 30px; margin-right: 10px; margin-left: 30px;"
+            style="margin-top: 30px; margin-right: 10px; margin-left: 30px"
             class="float-right"
           >
             Delete Class
@@ -178,9 +151,7 @@ export default {
 
         <v-list>
           <v-list-item>
-            <v-list-item-title>
-              Are you sure?
-            </v-list-item-title>
+            <v-list-item-title> Are you sure? </v-list-item-title>
 
             <v-btn
               color="red"
@@ -189,14 +160,11 @@ export default {
               class="float-right"
               style="margin-top: 10px"
             >
-              Yes, delete forever</v-btn>
-
+              Yes, delete forever</v-btn
+            >
           </v-list-item>
         </v-list>
       </v-menu>
-
     </v-card-actions>
   </v-card>
 </template>
-
-

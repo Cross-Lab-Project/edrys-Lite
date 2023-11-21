@@ -1,22 +1,13 @@
 <template>
-
   <v-row>
     <v-col>
-      <v-btn
-        depressed
-        block
-        @click="downloadClass('yaml')"
-      >
+      <v-btn depressed block @click="downloadClass('yaml')">
         <v-icon left> mdi-download </v-icon>
         Download class file (.yml)
       </v-btn>
     </v-col>
     <v-col>
-      <v-btn
-        depressed
-        block
-        @click="downloadClass('json')"
-      >
+      <v-btn depressed block @click="downloadClass('json')">
         <v-icon left> mdi-download </v-icon>
         Download class file (.json)
       </v-btn>
@@ -24,7 +15,6 @@
   </v-row>
   <v-row>
     <v-col>
-
       <v-file-input
         dense
         accept=".yml,.yaml,.json,application/yaml,application/json"
@@ -33,7 +23,6 @@
         :append-icon="selectedFileIcon"
         @click:append.self="restoreFile"
       ></v-file-input>
-
     </v-col>
 
     <v-col>
@@ -51,27 +40,22 @@
           <v-icon
             @mouseover="showTemplate = true"
             @mouseleave="showTemplate = false"
-            v-if="selectedURL.length>0 && showTemplate"
+            v-if="selectedURL.length > 0 && showTemplate"
             @click="selectedURL = ''"
-          >mdi-close-circle</v-icon>
+            >mdi-close-circle</v-icon
+          >
         </template>
       </v-text-field>
-
     </v-col>
   </v-row>
 
   <v-divider class="pb-2"></v-divider>
-  <v-btn
-    href="https://github.com/topics/edrys-classroom"
-    target="_blank"
-  >
+  <v-btn href="https://github.com/topics/edrys-classroom" target="_blank">
     <v-icon left> mdi-github </v-icon>
     Explore on GitHub
   </v-btn>
-
 </template>
-  
-  
+
 <script lang="ts">
 import * as yaml from "js-yaml";
 
@@ -101,8 +85,7 @@ export default {
       saveError: false,
       errorMessage: "",
       restoreFileRules: [
-        (value) =>
-          !value || value.size < 2000000 || "File should be less than 2 MB!",
+        (value) => !value || value.size < 2000000 || "File should be less than 2 MB!",
       ],
     };
   },
@@ -132,12 +115,9 @@ export default {
 
     downloadClass(format: "yaml" | "json") {
       const data =
-        format === "yaml"
-          ? yaml.dump(this.config)
-          : JSON.stringify(this.config, null, 2);
+        format === "yaml" ? yaml.dump(this.config) : JSON.stringify(this.config, null, 2);
 
-      const name =
-        "class-" + this.config.id + (format === "yaml" ? ".yml" : ".json");
+      const name = "class-" + this.config.id + (format === "yaml" ? ".yml" : ".json");
 
       const blob = new Blob([data], { type: "text/" + format });
       const url = URL.createObjectURL(blob);
@@ -171,10 +151,7 @@ export default {
       this.saveError = true;
       this.errorMessage = `Could not parse the content within the URL: ${this.selectedURL}`;
 
-      console.warn(
-        "Could not parse the content within the URL:",
-        this.selectedURL
-      );
+      console.warn("Could not parse the content within the URL:", this.selectedURL);
     },
     restoreFile() {
       this.restoreSuccess = false;
@@ -221,7 +198,3 @@ export default {
   },
 };
 </script>
-  
-
-  
-  

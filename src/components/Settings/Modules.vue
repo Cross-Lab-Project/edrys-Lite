@@ -1,17 +1,8 @@
 <template>
-
   <v-list lines="three">
-    <draggable
-      :list="config.modules"
-      item-key="id"
-      @end="move"
-      class="list-group"
-    >
+    <draggable :list="config.modules" item-key="id" @end="move" class="list-group">
       <template #item="{ element, index }">
-        <v-list-item
-          :key="index"
-          class="list-group-item"
-        >
+        <v-list-item :key="index" class="list-group-item">
           <template v-slot:prepend>
             <v-icon :icon="scrapedModules[index].icon || 'mdi-package'"></v-icon>
           </template>
@@ -19,7 +10,7 @@
           <v-list-item-title>
             {{ scrapedModules[index].name }}
             <v-chip size="x-small">
-              {{element.showInCustom || "*"}}
+              {{ element.showInCustom || "*" }}
             </v-chip>
           </v-list-item-title>
 
@@ -30,7 +21,6 @@
           </v-list-item-subtitle>
 
           <template v-slot:append>
-
             <v-menu :close-on-content-click="false">
               <template v-slot:activator="{ props }">
                 <v-btn
@@ -39,7 +29,6 @@
                   v-bind="props"
                   :style="validate_config(index) ? '' : 'color: red'"
                 ></v-btn>
-
               </template>
 
               <Module
@@ -50,12 +39,7 @@
 
             <v-menu>
               <template v-slot:activator="{ props }">
-
-                <v-btn
-                  v-bind="props"
-                  icon="mdi-delete"
-                  variant="text"
-                ></v-btn>
+                <v-btn v-bind="props" icon="mdi-delete" variant="text"></v-btn>
               </template>
 
               <v-list>
@@ -73,7 +57,6 @@
                   >
                     Yes
                   </v-btn>
-
                 </v-list-item>
               </v-list>
             </v-menu>
@@ -95,30 +78,21 @@
       ></v-text-field>
 
       <template v-slot:append>
-        <v-btn
-          @click="loadURL"
-          :disabled="!validate_url(moduleImportUrl)"
-        >
+        <v-btn @click="loadURL" :disabled="!validate_url(moduleImportUrl)">
           <v-icon left> mdi-view-grid-plus </v-icon>
           Add
         </v-btn>
       </template>
-
     </v-list-item>
-
   </v-list>
 
   <v-divider class="pb-2"></v-divider>
-  <v-btn
-    href="https://github.com/topics/edrys-module"
-    target="_blank"
-  >
+  <v-btn href="https://github.com/topics/edrys-module" target="_blank">
     <v-icon left> mdi-github </v-icon>
     Explore on GitHub
   </v-btn>
 </template>
-    
-    
+
 <script lang="ts">
 import { scrapeModule, validateUrl } from "../../ts/Utils";
 import draggable from "vuedraggable";
@@ -231,5 +205,3 @@ export default {
   components: { Module, draggable },
 };
 </script>
-    
-    

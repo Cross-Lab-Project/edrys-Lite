@@ -1,18 +1,11 @@
 <template>
   <v-app>
-    <v-app-bar
-      color="surface-variant"
-      title="Edrys-Lite"
-    ></v-app-bar>
+    <v-app-bar color="surface-variant" title="Edrys-Lite"></v-app-bar>
 
     <v-main class="d-flex">
-      <v-container
-        fluid
-        class="align-start"
-      >
+      <v-container fluid class="align-start">
         <v-row dense>
           <v-col cols="auto">
-
             <v-card
               class="item"
               color="primary"
@@ -23,10 +16,7 @@
               <v-card-title>Create a class</v-card-title>
               <v-card-subtitle>Start teaching now</v-card-subtitle>
               <v-card-actions>
-                <v-btn
-                  variant="text"
-                  color="teal-accent-4"
-                >
+                <v-btn variant="text" color="teal-accent-4">
                   Learn More
                   <v-icon icon="mdi-domain"></v-icon>
                 </v-btn>
@@ -53,11 +43,9 @@
         >Read File</v-btn-->
     </v-main>
   </v-app>
-
 </template>
-    
-    
-  <script lang="ts">
+
+<script lang="ts">
 import Database from "../ts/Database";
 
 //import WebTorrent from "../../node_modules/webtorrent/dist/webtorrent.min.js";

@@ -1,37 +1,27 @@
 <template>
-
   <v-expansion-panel>
     <v-expansion-panel-title>
-
-      {{title}}
+      {{ title }}
 
       <template v-slot:actions>
         <v-icon :style="errorMessage ? 'color: red;' : ''"> {{ icon }} </v-icon>
       </template>
     </v-expansion-panel-title>
     <v-expansion-panel-text>
-
       <div
-        style="font-size: small; margin-bottom: 0.25rem;"
+        style="font-size: small; margin-bottom: 0.25rem"
         :style="errorMessage ? 'color: red;' : 'color: gray;'"
       >
-        {{errorMessage || 'Valid YAML or JSON configuration'}}
+        {{ errorMessage || "Valid YAML or JSON configuration" }}
       </div>
 
-      <v-divider style="margin-bottom: 0.5rem;"></v-divider>
-      <prism-editor
-        v-model="code"
-        :highlight="highlighter"
-        line-numbers
-      ></prism-editor>
-
+      <v-divider style="margin-bottom: 0.5rem"></v-divider>
+      <prism-editor v-model="code" :highlight="highlighter" line-numbers></prism-editor>
     </v-expansion-panel-text>
-
   </v-expansion-panel>
-
 </template>
-  
-  <script lang="ts">
+
+<script lang="ts">
 // @ts-ignore
 import { PrismEditor } from "vue-prism-editor";
 import "vue-prism-editor/dist/prismeditor.min.css"; // import the styles somewhere
@@ -72,8 +62,7 @@ export default {
   },
 
   data() {
-    const input =
-      typeof this.config === "string" ? this.config : stringify(this.config);
+    const input = typeof this.config === "string" ? this.config : stringify(this.config);
 
     return {
       code: input === "''\n" ? "" : input,

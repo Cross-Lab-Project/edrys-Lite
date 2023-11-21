@@ -1,13 +1,25 @@
 <template>
   <div
-    style="height: 100%; width: calc(100% - 1rem); margin: .5rem"
+    style="height: 100%; width: calc(100% - 1rem); margin: 0.5rem"
     :key="scrapedModule.url"
   >
     <iframe
       style="height: 100%; width: 100%"
       :key="liveClassProxy.users[username].room"
-      :src="scrapedModule.srcdoc ? scrapedModule.srcdoc : (scrapedModule.url.startsWith('data:') ? null : scrapedModule.url)"
-      :srcdoc="!scrapedModule.srcdoc ? null : ( scrapedModule.url.startsWith('data:') ? scrapedModule.url : null )"
+      :src="
+        scrapedModule.srcdoc
+          ? scrapedModule.srcdoc
+          : scrapedModule.url.startsWith('data:')
+          ? null
+          : scrapedModule.url
+      "
+      :srcdoc="
+        !scrapedModule.srcdoc
+          ? null
+          : scrapedModule.url.startsWith('data:')
+          ? scrapedModule.url
+          : null
+      "
       allow="camera; microphone; fullscreen; display-capture; accelerometer; autoplay; encrypted-media; geolocation; gyroscope; magnetometer; midi; serial; vr;"
       @load="updateIframe"
       ref="iframe"
@@ -15,8 +27,7 @@
     ></iframe>
   </div>
 </template>
-  
-  
+
 <script lang="ts">
 export default {
   name: "Module",
@@ -84,6 +95,5 @@ export default {
   },
 };
 </script>
-  
-<style scoped>
-</style>
+
+<style scoped></style>
