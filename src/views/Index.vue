@@ -92,7 +92,10 @@ export default {
           >
             <v-card class="item" color="surface-variant" elevation="4">
               <v-img
-                :src="classroom?.data?.meta?.logo || '../assets/social.png'"
+                :src="
+                  classroom?.data?.meta?.logo ||
+                  'https://repository-images.githubusercontent.com/453979926/ab6bf9d7-a4bc-4a47-97b7-c8bc8bb4654d'
+                "
                 height="200px"
                 cover
               ></v-img>
