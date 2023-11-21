@@ -15,7 +15,7 @@ export default {
   data() {
     const database = new Database();
 
-    const room: DatabaseItem | null = null;
+    const configuration: DatabaseItem | null = null;
     const data: any = null;
     const communication: Peer | null = null;
 
@@ -41,7 +41,7 @@ export default {
       },
 
       database,
-      room,
+      configuration,
       data,
 
       communication,
@@ -65,42 +65,39 @@ export default {
   watch: {
     showSettings() {
       if (!this.showSettings) {
-        this.data = clone(this.room.data);
+        this.data = clone(this.configuration.data);
       }
-    },
-    room() {
-      console.warn("room-changed", JSON.stringify(this.room, null, 2));
-      this.communication.newSetup(clone(this.room));
     },
   },
 
   methods: {
     async init() {
-      this.room = await this.database.get(this.id);
+      this.configuration = await this.database.get(this.id);
 
       this.communication = new Peer(
-        this.room ? this.room : { id: this.id, data: null, timestamp: 0 }
+        this.configuration ? this.configuration : { id: this.id, data: null, timestamp: 0 }
       );
 
       const self = this;
 
       this.database.setObservable(this.id, (config: DatabaseItem) => {
-        console.warn("callbackDB", config);
         if (config) {
-          self.room = config;
+          console.warn("db update", config);
+          self.configuration = config;
+          self.communication?.newSetup(config);
         }
       });
 
-      if (this.room) {
-        this.data = clone(this.room.data);
-        this.isOwner = this.room.data.createdBy === this.peerID;
+      if (this.configuration) {
+        this.data = clone(this.configuration.data);
+        this.isOwner = this.configuration.data.createdBy === this.peerID;
         this.scrapeModules();
       }
 
-      this.communication.on("setup", (room: DatabaseItem) => {
-        console.warn("callback", room);
-        if (room.timestamp && room) {
-          self.database.put(room);
+      this.communication.on("setup", (configuration: DatabaseItem) => {
+        console.warn("callback", configuration);
+        if (configuration.timestamp && configuration) {
+          self.database.put(configuration);
           self.init();
         }
       });
@@ -135,7 +132,7 @@ export default {
 
       self.liveClassProxy = this.communication.join(this.stationName);
 
-      this.communication.join(this.stationName);
+      
 
       /*
       setTimeout(() => {
@@ -157,13 +154,13 @@ export default {
       */
     },
 
-    saveClass(config: any) {
+    saveClass(configuration: any) {
       this.$refs.Settings.close = true;
 
-      this.room.data = clone(config);
-      this.data = clone(config);
+      this.configuration.data = clone(configuration);
+      this.data = clone(configuration);
 
-      this.database.update(clone(this.room));
+      this.database.update(clone(this.configuration));
     },
 
     usersInRoom(name: string): [string, string][] {
@@ -191,7 +188,7 @@ export default {
     },
 
     deleteClass() {
-      this.database.drop(this.room.id);
+      this.database.drop(this.configuration.id);
       window.location.search = "";
     },
 
@@ -209,21 +206,15 @@ export default {
 <template>
   <v-overlay
     v-model="state"
-    v-if="states.connectedToNetwork === null || states.webRTCSupport === null || states.receivedConfiguration === null"
+    v-if="
+      states.connectedToNetwork === null ||
+      states.webRTCSupport === null ||
+      states.receivedConfiguration === null
+    "
   >
-    <v-container style="width: 100vw; height: 100vh;">
-      <v-row
-        justify="center"
-        align="center"
-        style="color: white"
-      >
-        <v-col
-          cols="12"
-          sm="6"
-          md="4"
-          justify="center"
-          align="center"
-        >
+    <v-container style="width: 100vw; height: 100vh">
+      <v-row justify="center" align="center" style="color: white">
+        <v-col cols="12" sm="6" md="4" justify="center" align="center">
           <v-progress-circular
             indeterminate
             :size="88"
@@ -250,7 +241,6 @@ export default {
               icon="mdi-close"
               v-if="states.webRTCSupport === false"
             ></v-btn>
-
           </div>
 
           <div>
@@ -271,7 +261,6 @@ export default {
               icon="mdi-close"
               v-if="states.receivedConfiguration === false"
             ></v-btn>
-
           </div>
 
           <div>
@@ -292,17 +281,13 @@ export default {
               icon="mdi-close"
               v-if="states.connectedToNetwork === false"
             ></v-btn>
-
           </div>
         </v-col>
       </v-row>
     </v-container>
-
   </v-overlay>
   <v-app>
-
     <v-layout>
-
       <v-app-bar color="surface-variant">
         <template v-slot:prepend>
           <v-app-bar-nav-icon @click="showSideMenu = !showSideMenu"></v-app-bar-nav-icon>
@@ -310,15 +295,12 @@ export default {
 
           <v-app-bar-title
             tag="a"
-            style="color: white; text-decoration: none;"
+            style="color: white; text-decoration: none"
             title="Back to index-page"
           >
-            <a
-              href="./"
-              data-link="true"
-              style="color: white; text-decoration: none;"
-            >edrys-lite</a>
-
+            <a href="./" data-link="true" style="color: white; text-decoration: none"
+              >edrys-lite</a
+            >
           </v-app-bar-title>
         </template>
 
@@ -327,27 +309,19 @@ export default {
         </template>
       </v-app-bar>
 
-      <v-navigation-drawer
-        temporary
-        v-model="showSideMenu"
-      >
-        <v-overlay
-          v-model="showSideMenu"
-          style="width: 275px;"
-          v-if="isStation"
-        >
+      <v-navigation-drawer temporary v-model="showSideMenu">
+        <v-overlay v-model="showSideMenu" style="width: 275px" v-if="isStation">
           <v-card
             tile
             width="100%"
             class="text-center"
-            style="margin-top: calc(50vh - 100px);"
+            style="margin-top: calc(50vh - 100px)"
           >
             <v-card-text class="white--text"> Station Mode Active </v-card-text>
 
             <v-divider></v-divider>
 
             <v-card-text>
-
               <v-text-field
                 outlined
                 v-model="stationName"
@@ -361,7 +335,7 @@ export default {
             </v-card-text>
             <v-divider></v-divider>
             <v-card-text>
-              <v-btn :href="'/?/classroom/'+id">
+              <v-btn :href="'/?/classroom/' + id">
                 <v-icon left>mdi-export-variant</v-icon>
 
                 Exit Station mode
@@ -370,18 +344,14 @@ export default {
           </v-card>
         </v-overlay>
 
-        <v-list
-          density="compact"
-          nav
-        >
+        <v-list density="compact" nav>
           <v-list-item>
-
             <v-list-item-title>
-              {{ room?.data?.name || ""}}
+              {{ configuration?.data?.name || "" }}
             </v-list-item-title>
 
             <v-list-item-subtitle>
-              online users {{ Object.keys(liveClassProxy?.users || {}).length  }}
+              online users {{ Object.keys(liveClassProxy?.users || {}).length }}
             </v-list-item-subtitle>
 
             <template v-slot:append>
@@ -393,23 +363,20 @@ export default {
                 v-if="!isStation && isOwner"
               ></v-btn>
             </template>
-
           </v-list-item>
-
         </v-list>
         <v-divider></v-divider>
 
-        <v-list
-          nav
-          v-for="(room, name, i) in getRooms()"
-          :key="i"
-          density="compact"
-        >
-
+        <v-list nav v-for="(room, name, i) in getRooms()" :key="i" density="compact">
           <v-list-item
             :prepend-icon="name === 'Lobby' ? 'mdi-account-group' : 'mdi-forum'"
             :title="name"
-            style="background-color: lightgray; padding-top: 0px; padding-bottom: 0px; min-height: 2rem;"
+            style="
+              background-color: lightgray;
+              padding-top: 0px;
+              padding-bottom: 0px;
+              min-height: 2rem;
+            "
           >
             <template v-slot:append>
               <v-btn
@@ -418,7 +385,6 @@ export default {
                 @click="gotoRoom(name)"
               ></v-btn>
             </template>
-
           </v-list-item>
 
           <v-list-item
@@ -427,7 +393,6 @@ export default {
             :title="user"
             :style="'min-height: 1.25rem; color: ' + color"
           />
-
         </v-list>
 
         <template v-slot:append>
@@ -445,12 +410,10 @@ export default {
           </div>
         </template>
       </v-navigation-drawer>
-      <v-main style="overflow-y: scroll;">
-
+      <v-main style="overflow-y: scroll">
         <v-col>
-
           <Modules
-            :role="isStation ? 'station' : (isOwner ? 'teacher' : 'student' )"
+            :role="isStation ? 'station' : isOwner ? 'teacher' : 'student'"
             :username_="peerID"
             :liveClassProxy="liveClassProxy"
             :scrapedModules_="scrapedModules"
@@ -459,13 +422,9 @@ export default {
             :key="componentKey"
             :class_id="id"
           >
-
           </Modules>
-
         </v-col>
-
       </v-main>
-
     </v-layout>
 
     <v-dialog
@@ -487,7 +446,5 @@ export default {
         @updateClass="updateClass"
       ></Settings>
     </v-dialog>
-
   </v-app>
-
 </template>

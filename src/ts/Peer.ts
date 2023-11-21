@@ -25,7 +25,11 @@ export default class Peer {
 
   private id: string
   private data: any
-  private timestamp: number
+
+  private timestamp: {
+    config: number
+    join: number
+  } = { config: 0, join: 0 }
 
   private peers: any = {}
 
@@ -34,7 +38,6 @@ export default class Peer {
 
   private peerID: string
   private stationID: string = ''
-  private timestamp_join: number = 0
 
   private userSettings: any = {
     displayName: '',
@@ -56,7 +59,7 @@ export default class Peer {
   ) {
     this.id = config.id
     this.data = config.data
-    this.timestamp = config.timestamp
+    this.timestamp.config = config.timestamp
     this.peerID = getPeerID()
 
     this.on('setup', setup)
@@ -89,18 +92,19 @@ export default class Peer {
         case 'setup': {
           const { data, timestamp } = msg.data
 
-          if (timestamp < self.timestamp) {
+          if (timestamp < self.timestamp.config) {
             console.warn('sending update')
             self.broadcast({
               id: self.peerID,
               topic: 'setup-update',
               data: {
                 data: self.data,
-                timestamp: self.timestamp,
+                timestamp: self.timestamp.config,
               },
             })
-          } else if (timestamp > self.timestamp) {
-            self.timestamp = timestamp
+          } else if (timestamp > self.timestamp.config) {
+            console.warn('receiving update', msg)
+            self.timestamp.config = timestamp
             self.data = data
             self.update('setup')
           }
@@ -108,8 +112,8 @@ export default class Peer {
         }
         case 'setup-update': {
           const { data, timestamp } = msg.data
-          if (timestamp > self.timestamp) {
-            self.timestamp = timestamp
+          if (timestamp > self.timestamp.config) {
+            self.timestamp.config = timestamp
             self.data = data
             self.update('setup')
           }
@@ -119,8 +123,9 @@ export default class Peer {
         case 'room-join': {
           this.peers[peer.id].id = msg.id
           const data = decode(msg.data.config)
-          if (msg.data.timestamp < self.timestamp_join) {
-            self.timestamp_join = msg.data.timestamp
+          if (msg.data.timestamp < self.timestamp.join) {
+            console.warn('room-join 1')
+            self.timestamp.join = msg.data.timestamp
 
             self.doc.getMap('users').unobserve(this.observer)
             self.doc.getMap('rooms').unobserve(this.observer)
@@ -131,6 +136,7 @@ export default class Peer {
             self.join('room-update')
             self.update('room')
           } else {
+            console.warn('room-join 2')
             Y.applyUpdate(this.doc, data)
           }
 
@@ -152,7 +158,9 @@ export default class Peer {
   newSetup(config: { id: string; data: any; timestamp: number }) {
     this.id = config.id
     this.data = config.data
-    this.timestamp = config.timestamp
+    this.timestamp.config = config.timestamp
+
+    this.publishSetup()
   }
 
   update(event: 'setup' | 'room') {
@@ -164,7 +172,7 @@ export default class Peer {
           callback({
             id: this.id,
             data: this.data,
-            timestamp: this.timestamp,
+            timestamp: this.timestamp.config,
           })
           this.callbackUpdate[event] = false
         } else {
@@ -198,7 +206,7 @@ export default class Peer {
 
   updateSetup(data: any, timestamp: number) {
     this.data = data
-    this.timestamp = timestamp
+    this.timestamp.config = timestamp
 
     this.broadcast({
       id: this.peerID,
@@ -229,7 +237,7 @@ export default class Peer {
   setIdentification(config: { id: string; data: any; timestamp: number }) {
     this.id = config.id
     this.data = config.data
-    this.timestamp = config.timestamp
+    this.timestamp.config = config.timestamp
 
     this.p2pt.setIdentifier(this.id)
 
@@ -243,13 +251,13 @@ export default class Peer {
     this.peers = {}
   }
 
-  publishSetup(peerID: string) {
+  publishSetup(peerID?: string) {
     const message = {
       id: this.peerID,
       topic: 'setup',
       data: {
         data: this.data,
-        timestamp: this.timestamp,
+        timestamp: this.timestamp.config,
       },
     }
 
@@ -285,11 +293,12 @@ export default class Peer {
 
     this.userSettings.displayName = this.peerID
 
-    this.timestamp_join = Date.now()
+    this.timestamp.join = Date.now()
 
     this.initDoc(true, this.data.meta.defaultNumberOfRooms)
 
     setTimeout(() => {
+      console.warn('setTimeout: enterClassroom', 'room-join')
       this.enterClassroom('room-join')
     }, 1000)
 
@@ -329,7 +338,7 @@ export default class Peer {
       if (self.stationID) {
         if (users.has(self.peerID) && rooms.has(self.stationID)) {
           self.update('room')
-          self.enterClassroom('room-join')
+          self.enterClassroom('room-update')
         } else {
           self.doc.transact(() => {
             rooms.set(self.stationID, ROOM)
@@ -352,13 +361,17 @@ export default class Peer {
   }
 
   enterClassroom(type: 'room-join' | 'room-update') {
-    console.warn('XXXXXXXXXXXXXXXXXXXXX enterClassroom', type)
+    console.warn(
+      'XXXXXXXXXXXXXXXXXXXXX enterClassroom',
+      type,
+      JSON.stringify(this.doc.toJSON(), null, 2)
+    )
     this.broadcast({
       id: this.peerID,
       topic: type,
       data: {
         config: encode(Y.encodeStateAsUpdate(this.doc)),
-        timestamp: this.timestamp_join,
+        timestamp: this.timestamp.join,
       },
     })
   }
