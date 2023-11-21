@@ -45,7 +45,7 @@ export default {
       data,
 
       communication,
-      peerID: getPeerID(),
+      peerID: null,
       isOwner: false,
 
       showSideMenu: true,
@@ -77,8 +77,11 @@ export default {
       this.communication = new Peer(
         this.configuration
           ? this.configuration
-          : { id: this.id, data: null, timestamp: 0 }
+          : { id: this.id, data: null, timestamp: 0 },
+        this.stationName
       );
+
+      this.peerID = this.communication.getPeerID();
 
       const self = this;
 
@@ -130,7 +133,7 @@ export default {
         self.liveClassProxy = config;
       });
 
-      self.liveClassProxy = this.communication.join(this.stationName);
+      self.liveClassProxy = this.communication.join();
 
       /*
       setTimeout(() => {

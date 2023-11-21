@@ -51,7 +51,6 @@ export default {
     this.communication.on(
       "message",
       (msg: { subject: string; body: any; module_url: string; date: number }) => {
-        
         for (let i = 0; i < iframes.length; i++) {
           iframes[i].contentWindow.postMessage(
             {

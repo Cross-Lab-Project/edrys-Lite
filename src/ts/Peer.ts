@@ -55,14 +55,17 @@ export default class Peer {
 
   constructor(
     config: { id: string; data: any; timestamp: number },
-    setup?: (config: any) => void
+    stationID?: string
   ) {
     this.id = config.id
     this.data = config.data
     this.timestamp.config = config.timestamp
-    this.peerID = getPeerID()
 
-    this.on('setup', setup)
+    this.peerID = getPeerID()
+    if (stationID) {
+      this.stationID = 'Station ' + stationID
+      this.peerID = this.stationID
+    }
 
     this.p2pt = new P2PT(trackersAnnounceURLs, this.id)
 
@@ -199,6 +202,10 @@ export default class Peer {
     this.timestamp.config = config.timestamp
 
     this.publishSetup()
+  }
+
+  getPeerID() {
+    return this.peerID
   }
 
   update(event: 'setup' | 'room' | 'message', message?: any) {
@@ -348,12 +355,7 @@ export default class Peer {
     this.doc.getMap('users').set(this.peerID, this.userSettings)
   }
 
-  join(stationID: string) {
-    if (stationID) {
-      this.stationID = 'Station ' + stationID
-      this.peerID = this.stationID
-    }
-
+  join() {
     this.userSettings.displayName = this.peerID
 
     this.timestamp.join = Date.now()
