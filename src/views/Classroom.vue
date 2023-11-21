@@ -180,7 +180,7 @@ export default {
     },
 
     gotoRoom(name: string) {
-      console.warn("YYYYYYYYYYYYYYYYYYYYYYYYYYY", name);
+      
       this.communication?.gotoRoom(name);
     },
 
@@ -197,6 +197,7 @@ export default {
       this.data = clone(config.data);
     },
   },
+ 
   components: {
     Settings,
     Modules,
@@ -299,7 +300,7 @@ export default {
             style="color: white; text-decoration: none"
             title="Back to index-page"
           >
-            <a href="./" data-link="true" style="color: white; text-decoration: none"
+            <a href="./" style="color: white; text-decoration: none"
               >edrys-lite</a
             >
           </v-app-bar-title>
