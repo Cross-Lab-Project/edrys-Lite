@@ -133,7 +133,7 @@ export default class Peer {
             self.doc = new Y.Doc()
             Y.applyUpdate(this.doc, data)
             self.initDoc(false)
-            self.join('room-update')
+            self.enterClassroom('room-update')
             self.update('room')
           } else {
             console.warn('room-join 2')
@@ -225,7 +225,12 @@ export default class Peer {
 
     for (const id in this.peers) {
       try {
-        console.warn('broadcast', id, msg)
+        console.warn(
+          'XXXXXXXXXXXXXXXXXXbroadcast',
+          id,
+          this.peers[id].peer,
+          msg
+        )
         this.p2pt.send(this.peers[id].peer, msg)
       } catch (e) {
         console.warn(e.message)
@@ -297,10 +302,11 @@ export default class Peer {
 
     this.initDoc(true, this.data.meta.defaultNumberOfRooms)
 
+    const self = this
     setTimeout(() => {
       console.warn('setTimeout: enterClassroom', 'room-join')
       this.enterClassroom('room-join')
-    }, 1000)
+    }, 10000)
 
     return this.doc.toJSON()
   }
@@ -336,6 +342,10 @@ export default class Peer {
 
     this.observer = (event: any) => {
       if (self.stationID) {
+        console.log(
+          'XXX Room configuration has changed ... updating',
+          self.stationID
+        )
         if (users.has(self.peerID) && rooms.has(self.stationID)) {
           self.update('room')
           self.enterClassroom('room-update')

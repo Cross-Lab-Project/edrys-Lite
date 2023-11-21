@@ -130,6 +130,7 @@ export default {
         self.liveClassProxy = config;
       });
 
+      console.warn("this.station", this.stationName);
       self.liveClassProxy = this.communication.join(this.stationName);
 
       
