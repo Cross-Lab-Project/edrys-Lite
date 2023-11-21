@@ -1,4 +1,5 @@
 <script lang="ts">
+import DateFormat from "date-format-simple";
 import { Database, DatabaseItem } from "../ts/Database";
 import { infoHash, getPeerID, clone } from "../ts/Utils";
 
@@ -112,8 +113,6 @@ export default {
                   v-html="classroom?.data?.meta?.description || 'No description'"
                 ></span>
               </v-card-text>
-
-              <v-card-text> Timestamp: {{ classroom?.timestamp }} </v-card-text>
 
               <v-card-actions>
                 <v-btn icon title="fork" @click="forkClass(classroom)">
