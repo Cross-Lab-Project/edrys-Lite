@@ -27,6 +27,8 @@ export default class Peer {
   private data: any
   private connected: boolean = false
 
+  private roomBubbling?: number
+
   private timestamp: {
     config: number
     join: number
@@ -379,6 +381,14 @@ export default class Peer {
     setTimeout(() => {
       self.enterClassroom('room-join')
     }, 1000)
+
+    if (this.roomBubbling) {
+      clearInterval(this.roomBubbling)
+    }
+
+    this.roomBubbling = setInterval(() => {
+      self.enterClassroom('room-update')
+    }, 5000)
 
     return this.doc.toJSON()
   }
