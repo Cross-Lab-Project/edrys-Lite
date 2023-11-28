@@ -391,7 +391,7 @@ export default class Peer {
       rooms.set('Lobby', ROOM)
 
       if (defaultRooms > 0) {
-        for (let i = 0; i < defaultRooms; i++) {
+        for (let i = 1; i <= defaultRooms; i++) {
           rooms.set('Room ' + i, ROOM)
         }
       }
