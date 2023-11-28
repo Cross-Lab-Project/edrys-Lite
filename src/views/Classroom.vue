@@ -5,7 +5,6 @@ import Modules from "../components/Modules.vue";
 
 import { Database, DatabaseItem } from "../ts/Database";
 import { infoHash, scrapeModule, clone, getPeerID } from "../ts/Utils";
-
 import { onMounted } from "vue";
 import Peer from "../ts/Peer";
 

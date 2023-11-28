@@ -10,9 +10,19 @@ import * as components from '../node_modules/vuetify/lib/components'
 import * as directives from '../node_modules/vuetify/lib/directives'
 import './assets/scss/main.scss'
 
-import { Database, DatabaseItem } from './ts/Database'
-
 var app
+
+const vuetify = createVuetify({
+  components,
+  directives,
+  icons: {
+    defaultSet: 'mdi',
+    aliases,
+    sets: {
+      mdi,
+    },
+  },
+})
 
 const pathToRegex = (path) =>
   new RegExp('^' + path.replace(/\//g, '\\/').replace(/:\w+/g, '(.+)') + '$')
@@ -79,18 +89,6 @@ const router = async () => {
 
   const params = getParams(match)
   const view = match.route.view
-
-  const vuetify = createVuetify({
-    components,
-    directives,
-    icons: {
-      defaultSet: 'mdi',
-      aliases,
-      sets: {
-        mdi,
-      },
-    },
-  })
 
   app?.unmount()
   app = createApp(view, params)
