@@ -139,6 +139,8 @@ export default {
         self.states.connectedToNetwork = state;
       })
 
+      this.componentKey++;
+
       /*
       setTimeout(() => {
         self.communication = new Comm2(
@@ -166,6 +168,8 @@ export default {
       this.data = clone(configuration);
 
       this.database.update(clone(this.configuration));
+
+      this.scrapeModules()
     },
 
     usersInRoom(name: string): [string, string][] {
