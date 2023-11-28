@@ -36,8 +36,8 @@ export default {
       state: true,
       states: {
         webRTCSupport,
-        receivedConfiguration: true,
-        connectedToNetwork: true,
+        receivedConfiguration: null,
+        connectedToNetwork: null,
       },
 
       database,
@@ -120,6 +120,8 @@ export default {
     },
 
     async scrapeModules() {
+      this.states.receivedConfiguration = true;
+
       this.scrapedModules = [];
       for (let i = 0; i < this.data.modules.length; i++) {
         let module = await scrapeModule(this.data.modules[i]);
@@ -127,13 +129,16 @@ export default {
       }
 
       const self = this;
-      self.states.connectedToNetwork = true;
-
+      
       this.communication.on("room", (config: any) => {
         self.liveClassProxy = config;
       });
 
       self.liveClassProxy = this.communication.join();
+      
+      this.communication.on("connected" , (state: boolean) => {
+        self.states.connectedToNetwork = state;
+      })
 
       /*
       setTimeout(() => {
@@ -212,10 +217,11 @@ export default {
       states.webRTCSupport === null ||
       states.receivedConfiguration === null
     "
+    style="background-color: rgba(0, 0, 0, 0.6); z-index: 1000"
   >
-    <v-container style="width: 100vw; height: 100vh">
-      <v-row justify="center" align="center" style="color: white">
-        <v-col cols="12" sm="6" md="4" justify="center" align="center">
+    <v-container >
+      <v-row justify="center" align="center" style="color: white; width: 100vw; height: 70vh">
+        <v-col cols="12" sm="12" md="4" justify="center" align="center">
           <v-progress-circular
             indeterminate
             :size="88"

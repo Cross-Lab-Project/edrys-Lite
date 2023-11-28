@@ -25,6 +25,7 @@ export default class Peer {
 
   private id: string
   private data: any
+  private connected: boolean = false
 
   private timestamp: {
     config: number
@@ -73,6 +74,8 @@ export default class Peer {
     this.p2pt.on('trackerconnect', (tracker, stats) => {
       //console.log('Connected to tracker : ' + tracker.announceUrl)
       //console.log('Tracker stats : ' + JSON.stringify(stats))
+      self.connected = true
+      self.update('connected')
     })
 
     this.p2pt.on('peerconnect', (peer) => {
@@ -208,7 +211,7 @@ export default class Peer {
     return this.peerID
   }
 
-  update(event: 'setup' | 'room' | 'message', message?: any) {
+  update(event: 'setup' | 'room' | 'message' | 'connected', message?: any) {
     const callback = this.callback[event]
 
     switch (event) {
@@ -240,10 +243,20 @@ export default class Peer {
         }
         break
       }
+
+      case 'connected': {
+        if (callback) {
+          callback(this.connected)
+          this.callbackUpdate[event] = false
+        } else {
+          this.callbackUpdate[event] = true
+        }
+        break
+      }
     }
   }
 
-  on(event: 'setup' | 'room', callback: any) {
+  on(event: 'setup' | 'room' | 'connected', callback: any) {
     if (callback) {
       this.callback[event] = callback
 
