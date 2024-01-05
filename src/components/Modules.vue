@@ -95,14 +95,14 @@ export default {
 			Array.from(document.querySelectorAll('.grid-item')).forEach(function(item) {
 				let multiplier_w = item.className.match(/item--w(\d)/)
 				let multiplier_h = item.className.match(/item--h(\d)/)
-				let width = multiplier_w ? columnWidth * multiplier_w[1] - 4 : columnWidth-4
-				let height = multiplier_h ? columnWidth * multiplier_h[1] * 0.5 -4 : columnWidth * 0.5 - 4
+				let width = multiplier_w ? columnWidth * multiplier_w[1] - 8 : columnWidth - 8
+				//let height = multiplier_h ? columnWidth * multiplier_h[1] * 0.5 - 8 : columnWidth * 0.5 - 8
 
 				item.style.width= width + "px"
-        item.style.height = height + "px"
+        //item.style.height = height + "px"
 
         item.width= width + "px"
-        item.height = height + "px"
+        //item.height = height + "px"
 			});
 
 			return columnWidth;
@@ -140,7 +140,7 @@ export default {
 
       switch (width) {
         case "full":
-          result.push("grid-item--w3");
+          result.push("grid-item--w4");
           break;
         case "half":
           result.push("grid-item--w2");
@@ -192,17 +192,18 @@ export default {
       :v-show="liveClassProxy !== null ? true : false"
       style="width: 100%"
     >
+      <div v-for="(m, i) in scrapedModulesFilter" :class="size(m.height, m.width)" >
         <Module
-        v-for="(m, i) in scrapedModulesFilter"
+        
         :key="i"
         :username="username"
         :live-class-proxy="liveClassProxy"
         :scrapedModule="m"
         :role="role"
         :class_id="class_id"
-        :class="size(m.height, m.width)"
       >
       </Module>
+      </div>
     </div>
 
     <v-card v-if="!scrapedModules_.length">
@@ -236,12 +237,16 @@ export default {
 	width: 80%;
 }
 
+.grid-item--w4 {
+	width: 80%;
+}
+
 .grid-item--h2 {
 	height: 400px;
 }
 
 .grid-item--h3 {
-	height: 800px;
+	height: 720px;
 }
 
 .isotope .isotope-item {
