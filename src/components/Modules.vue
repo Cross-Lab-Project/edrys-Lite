@@ -225,6 +225,7 @@ export default {
 	height: 200px;
   position: relative;
   margin: 0 2px 4px;
+  border: 1px solid #000;
 }
 
 .grid-item--w2 {
