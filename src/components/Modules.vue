@@ -1,5 +1,7 @@
 <script lang="ts">
 import Module from "./Module.vue";
+import masonry from "masonry-layout"
+
 export default {
   components: { Module },
   name: "Modules",
@@ -14,7 +16,7 @@ export default {
   data() {
     return {
       username: this.username_,
-
+      msnry: null,
       //scrapedModules: JSON.parse(JSON.stringify(this.scrapedModules_)),
       count: 0,
     };
@@ -63,13 +65,53 @@ export default {
       }
       //self.scrapedModule.origin || self.iframeOrigin
     );
+
+    
   },
   beforeDestroy() {
     window.removeEventListener("message", this.messageHandler);
     this.communication.on("message", undefined);
   },
-  async mounted() {},
+
+  async mounted() {
+    this.msnry = new masonry(".grid", {
+      itemSelector: ".grid-item",
+      columnWidth: 80,
+      gutter: 16,
+      percentPosition: true,
+      horizontalOrder: false,
+    });
+
+    console.warn("XXXXX mounted", this.msnry);
+  },
+
   methods: {
+    height(size: string) {
+      switch (size) {
+        case "tall":
+          return "720px";
+        case "short":
+          return "230px";
+        default:
+          return "475px";
+      }
+    },
+
+    width(size: string) {
+
+
+      switch (size) {
+        case "full":
+          return "100%";
+        case "half":
+          return "50%";
+        default: {
+          return "33%";
+        }
+
+      }
+    },
+
     messageHandler(e) {
       switch (e.data.event) {
         case "message":
@@ -108,20 +150,12 @@ export default {
 <template>
   <div :key="role">
     <div
-      class="items"
+      class="grid"
       :v-show="liveClassProxy !== null ? true : false"
-      style="max-width: 1200px"
+      style="width: 100%"
     >
-      <!-- :style="{
-            height:
-              m.height == 'tall'
-                ? '700px'
-                : m.height == 'short'
-                ? '300px'
-                : '500px',
-          }" -->
-      <Module
-        class="item"
+        <Module
+        class="grid-item"
         v-for="(m, i) in scrapedModulesFilter"
         :key="i"
         :username="username"
@@ -129,6 +163,10 @@ export default {
         :scrapedModule="m"
         :role="role"
         :class_id="class_id"
+        :style="{
+            height: height(m.height),
+            width: width(m.width),          
+          }"
       >
       </Module>
     </div>
@@ -146,14 +184,18 @@ export default {
 </template>
 
 <style scoped>
-.item {
-  height: 700px !important;
+
+.grid-item {
+  float: left;
+  max-width: 900px;
+  min-width: 360px;
+  border: 3px solid #000;
+  border-color: #000;
+  border-radius: 0.3rem;
+  margin-bottom: 16px;
 }
 
-.items {
-  margin: 0 auto;
-  display: grid;
-  grid-gap: 0.4rem;
-  /* grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); */
+.grid {
+  margin-right: 0.5rem;
 }
 </style>
