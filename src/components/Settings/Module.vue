@@ -27,27 +27,28 @@
       </v-expansion-panel-title>
       <v-expansion-panel-text>
         <v-row>
-        <v-col cols="6">
+          <v-col cols="6">
             <v-container fluid>
-                <p>Width</p>
-                <v-radio-group v-model="module.width">
-                    <v-radio label="Full (80%)" value="full"></v-radio>
-                    <v-radio label="Half (40%)" value="half"></v-radio>
-                    <v-radio label="Quarter (20%)" value="third"></v-radio>
-                </v-radio-group>
+              <p>Width</p>
+              <v-radio-group v-model="module.width">
+                <v-radio label="Full (1000px)" value="full"></v-radio>
+                <v-radio label="Half (500px)" value="half"></v-radio>
+                <v-radio label="Quarter (250px)" value="third"></v-radio>
+              </v-radio-group>
             </v-container>
-        </v-col>
-        <v-col cols="6">
+          </v-col>
+          <v-col cols="6">
             <v-container fluid>
-                <p>Height</p>
-                <v-radio-group v-model="module.height">
-                    <v-radio label="Tall (800px)" value="tall"></v-radio>
-                    <v-radio label="Medium (400px)" value="medium"></v-radio>
-                    <v-radio label="Short (200px)" value="short"></v-radio>
-                </v-radio-group>
+              <p>Height</p>
+              <v-radio-group v-model="module.height">
+                <v-radio label="HUGE (830px)" value="huge"></v-radio>
+                <v-radio label="Tall (720x)" value="tall"></v-radio>
+                <v-radio label="Medium (410px)" value="medium"></v-radio>
+                <v-radio label="Short (200px)" value="short"></v-radio>
+              </v-radio-group>
             </v-container>
-        </v-col>
-    </v-row>
+          </v-col>
+        </v-row>
       </v-expansion-panel-text>
     </v-expansion-panel>
 

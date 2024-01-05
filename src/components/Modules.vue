@@ -1,6 +1,6 @@
 <script lang="ts">
 import Module from "./Module.vue";
-import isotope from "isotope-layout"
+import Muuri from "muuri";
 
 export default {
   components: { Module },
@@ -16,7 +16,7 @@ export default {
   data() {
     return {
       username: this.username_,
-      iso: null,
+      grid: null,
       //scrapedModules: JSON.parse(JSON.stringify(this.scrapedModules_)),
       count: 0,
     };
@@ -65,8 +65,6 @@ export default {
       }
       //self.scrapedModule.origin || self.iframeOrigin
     );
-
-    
   },
   beforeDestroy() {
     window.removeEventListener("message", this.messageHandler);
@@ -74,76 +72,43 @@ export default {
   },
 
   async mounted() {
-	  let colWidth = function () {
-      let container = document.getElementsByClassName('grid')[0];
-			let w = container?.getBoundingClientRect().width || window.innerWidth 
-			let	columnNum = 1
-			let	columnWidth = 0
-
-			if (w > 1200) {
-				columnNum  = 5;
-			} else if (w > 900) {
-				columnNum  = 4;
-			} else if (w > 600) {
-				columnNum  = 3;
-			} else if (w > 300) {
-				columnNum  = 2;
-			}
-			
-      columnWidth = Math.floor(w/columnNum);
-
-			Array.from(document.querySelectorAll('.grid-item')).forEach(function(item) {
-				let multiplier_w = item.className.match(/item--w(\d)/)
-				let multiplier_h = item.className.match(/item--h(\d)/)
-				let width = multiplier_w ? columnWidth * multiplier_w[1] - 8 : columnWidth - 8
-				//let height = multiplier_h ? columnWidth * multiplier_h[1] * 0.5 - 8 : columnWidth * 0.5 - 8
-
-				item.style.width= width + "px"
-        //item.style.height = height + "px"
-
-        item.width= width + "px"
-        //item.height = height + "px"
-			});
-
-			return columnWidth;
-		}
-
-
-    const self = this;
-    const layout = function() {
-      self.iso = new isotope( document.querySelector('.grid'), {
-        itemSelector: '.grid-item',
-        masonry: {
-          columnWidth: colWidth()
-        }
-      });
-    }
-
-    
-    window.addEventListener('resize', layout);
-    
-    setTimeout(layout, 1000);
+    this.grid = new Muuri(".grid", {
+      layoutDuration: 400,
+      layoutEasing: "ease",
+      dragEnabled: true,
+      dragSortInterval: 50,
+      layout: {
+        fillGaps: true,
+        horizontal: false,
+        alignRight: false,
+        alignBottom: false,
+        rounding: true,
+      },
+    });
   },
 
   methods: {
     size(height: string, width: string): string {
-      let result = ["grid-item"];
+      let result = ["item"];
 
       switch (height) {
+        case "huge":
+          result.push("item--h4");
+          break;
         case "tall":
-          result.push("grid-item--h3");
+          result.push("item--h3");
           break;
         case "medium":
-          result.push("grid-item--h2");
+          result.push("item--h2");
           break;
       }
 
       switch (width) {
         case "full":
-          result.push("grid-item--w4");
+          result.push("item--w3");
           break;
         case "half":
-          result.push("grid-item--w2");
+          result.push("item--w2");
           break;
       }
 
@@ -192,17 +157,21 @@ export default {
       :v-show="liveClassProxy !== null ? true : false"
       style="width: 100%"
     >
-      <div v-for="(m, i) in scrapedModulesFilter" :class="size(m.height, m.width)" >
-        <Module
-        
-        :key="i"
-        :username="username"
-        :live-class-proxy="liveClassProxy"
-        :scrapedModule="m"
-        :role="role"
-        :class_id="class_id"
+      <div
+        class="item"
+        v-for="(m, i) in scrapedModulesFilter"
+        :class="size(m.height, m.width)"
       >
-      </Module>
+        <Module
+          class="item-content"
+          :key="i"
+          :username="username"
+          :live-class-proxy="liveClassProxy"
+          :scrapedModule="m"
+          :role="role"
+          :class_id="class_id"
+        >
+        </Module>
       </div>
     </div>
 
@@ -219,46 +188,40 @@ export default {
 </template>
 
 <style scoped>
-
-.grid-item {
-  float: left;
-	width: 20%;
-	height: 200px;
-  position: relative;
-  margin: 0 2px 4px;
+.item {
+  display: block;
+  position: absolute;
+  width: 250px;
+  height: 200px;
+  margin: 5px;
+  z-index: 1;
+  max-width: 99%;
   border: 1px solid #000;
 }
 
-.grid-item--w2 {
-	width: 40%;
+.item--w2 {
+  width: 510px;
 }
 
-.grid-item--w3 {
-	width: 80%;
+.item--w3 {
+  width: 1030;
 }
 
-.grid-item--w4 {
-	width: 80%;
+.item--h2 {
+  height: 410px;
 }
 
-.grid-item--h2 {
-	height: 400px;
+.item--h3 {
+  height: 720px;
 }
 
-.grid-item--h3 {
-	height: 720px;
-}
-
-.isotope .isotope-item {
-	-webkit-transition-duration: 0.8s;
-	-moz-transition-duration: 0.8s;
-	transition-duration: 0.8s;
-	-webkit-transition-property: -webkit-transform, opacity;
-	-moz-transition-property: -moz-transform, opacity;
-	transition-property: transform, opacity;
+.item--h4 {
+  height: 830px;
 }
 
 .grid {
-  margin-right: 0.5rem;
+  position: relative;
+  width: 100%;
+  margin: 0 auto;
 }
 </style>
