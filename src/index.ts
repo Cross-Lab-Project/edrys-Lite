@@ -5,7 +5,6 @@ import Classroom from './views/Classroom.vue'
 // Vuetify
 import 'vuetify/dist/vuetify.min.css'
 import { createVuetify } from 'vuetify'
-import * as MasonryWall from '@yeger/vue-masonry-wall-core/dist/index.mjs'
 import { aliases, mdi } from '../node_modules/vuetify/lib/iconsets/mdi.mjs'
 import * as components from '../node_modules/vuetify/lib/components'
 import * as directives from '../node_modules/vuetify/lib/directives'
@@ -94,7 +93,6 @@ const router = async () => {
   app?.unmount()
   app = createApp(view, params)
   app.use(vuetify)
-  app.use(MasonryWall)
 
   app.mount(document.body)
 }

@@ -31,9 +31,9 @@
             <v-container fluid>
                 <p>Width</p>
                 <v-radio-group v-model="module.width">
-                    <v-radio label="Full" value="full"></v-radio>
-                    <v-radio label="Half" value="half"></v-radio>
-                    <v-radio label="Third" value="third"></v-radio>
+                    <v-radio label="Full (80%)" value="full"></v-radio>
+                    <v-radio label="Half (40%)" value="half"></v-radio>
+                    <v-radio label="Quarter (20%)" value="third"></v-radio>
                 </v-radio-group>
             </v-container>
         </v-col>
@@ -41,9 +41,9 @@
             <v-container fluid>
                 <p>Height</p>
                 <v-radio-group v-model="module.height">
-                    <v-radio label="Tall" value="tall"></v-radio>
-                    <v-radio label="Medium" value="medium"></v-radio>
-                    <v-radio label="Short" value="short"></v-radio>
+                    <v-radio label="Tall (800px)" value="tall"></v-radio>
+                    <v-radio label="Medium (400px)" value="medium"></v-radio>
+                    <v-radio label="Short (200px)" value="short"></v-radio>
                 </v-radio-group>
             </v-container>
         </v-col>

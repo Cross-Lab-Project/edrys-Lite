@@ -1,6 +1,6 @@
 <script lang="ts">
 import Module from "./Module.vue";
-import masonry from "masonry-layout"
+import isotope from "isotope-layout"
 
 export default {
   components: { Module },
@@ -16,7 +16,7 @@ export default {
   data() {
     return {
       username: this.username_,
-      msnry: null,
+      iso: null,
       //scrapedModules: JSON.parse(JSON.stringify(this.scrapedModules_)),
       count: 0,
     };
@@ -74,42 +74,80 @@ export default {
   },
 
   async mounted() {
-    this.msnry = new masonry(".grid", {
-      itemSelector: ".grid-item",
-      columnWidth: 80,
-      gutter: 16,
-      percentPosition: true,
-      horizontalOrder: false,
-    });
+	  let colWidth = function () {
+      let container = document.getElementsByClassName('grid')[0];
+			let w = container?.getBoundingClientRect().width || window.innerWidth 
+			let	columnNum = 1
+			let	columnWidth = 0
 
-    console.warn("XXXXX mounted", this.msnry);
+			if (w > 1200) {
+				columnNum  = 5;
+			} else if (w > 900) {
+				columnNum  = 4;
+			} else if (w > 600) {
+				columnNum  = 3;
+			} else if (w > 300) {
+				columnNum  = 2;
+			}
+			
+      columnWidth = Math.floor(w/columnNum);
+
+			Array.from(document.querySelectorAll('.grid-item')).forEach(function(item) {
+				let multiplier_w = item.className.match(/item--w(\d)/)
+				let multiplier_h = item.className.match(/item--h(\d)/)
+				let width = multiplier_w ? columnWidth * multiplier_w[1] - 4 : columnWidth-4
+				let height = multiplier_h ? columnWidth * multiplier_h[1] * 0.5 -4 : columnWidth * 0.5 - 4
+
+				item.style.width= width + "px"
+        item.style.height = height + "px"
+
+        item.width= width + "px"
+        item.height = height + "px"
+			});
+
+			return columnWidth;
+		}
+
+
+    const self = this;
+    const layout = function() {
+      self.iso = new isotope( document.querySelector('.grid'), {
+        itemSelector: '.grid-item',
+        masonry: {
+          columnWidth: colWidth()
+        }
+      });
+    }
+
+    
+    window.addEventListener('resize', layout);
+    
+    setTimeout(layout, 1000);
   },
 
   methods: {
-    height(size: string) {
-      switch (size) {
+    size(height: string, width: string): string {
+      let result = ["grid-item"];
+
+      switch (height) {
         case "tall":
-          return "720px";
-        case "short":
-          return "230px";
-        default:
-          return "475px";
+          result.push("grid-item--h3");
+          break;
+        case "medium":
+          result.push("grid-item--h2");
+          break;
       }
-    },
 
-    width(size: string) {
-
-
-      switch (size) {
+      switch (width) {
         case "full":
-          return "100%";
+          result.push("grid-item--w3");
+          break;
         case "half":
-          return "50%";
-        default: {
-          return "33%";
-        }
-
+          result.push("grid-item--w2");
+          break;
       }
+
+      return result.join(" ");
     },
 
     messageHandler(e) {
@@ -155,7 +193,6 @@ export default {
       style="width: 100%"
     >
         <Module
-        class="grid-item"
         v-for="(m, i) in scrapedModulesFilter"
         :key="i"
         :username="username"
@@ -163,10 +200,7 @@ export default {
         :scrapedModule="m"
         :role="role"
         :class_id="class_id"
-        :style="{
-            height: height(m.height),
-            width: width(m.width),          
-          }"
+        :class="size(m.height, m.width)"
       >
       </Module>
     </div>
@@ -187,12 +221,35 @@ export default {
 
 .grid-item {
   float: left;
-  max-width: 900px;
-  min-width: 360px;
-  border: 3px solid #000;
-  border-color: #000;
-  border-radius: 0.3rem;
-  margin-bottom: 16px;
+	width: 20%;
+	height: 200px;
+  position: relative;
+  margin: 0 2px 4px;
+}
+
+.grid-item--w2 {
+	width: 40%;
+}
+
+.grid-item--w3 {
+	width: 80%;
+}
+
+.grid-item--h2 {
+	height: 400px;
+}
+
+.grid-item--h3 {
+	height: 800px;
+}
+
+.isotope .isotope-item {
+	-webkit-transition-duration: 0.8s;
+	-moz-transition-duration: 0.8s;
+	transition-duration: 0.8s;
+	-webkit-transition-property: -webkit-transform, opacity;
+	-moz-transition-property: -moz-transform, opacity;
+	transition-property: transform, opacity;
 }
 
 .grid {
