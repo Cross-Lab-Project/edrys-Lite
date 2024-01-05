@@ -17,6 +17,40 @@
       </v-expansion-panel-text>
     </v-expansion-panel>
 
+    <v-expansion-panel>
+      <v-expansion-panel-title>
+        Design
+
+        <template v-slot:actions>
+          <v-icon> mdi-pencil-ruler </v-icon>
+        </template>
+      </v-expansion-panel-title>
+      <v-expansion-panel-text>
+        <v-row>
+        <v-col cols="6">
+            <v-container fluid>
+                <p>Width</p>
+                <v-radio-group v-model="module.width">
+                    <v-radio label="Full" value="full"></v-radio>
+                    <v-radio label="Half" value="half"></v-radio>
+                    <v-radio label="Third" value="third"></v-radio>
+                </v-radio-group>
+            </v-container>
+        </v-col>
+        <v-col cols="6">
+            <v-container fluid>
+                <p>Height</p>
+                <v-radio-group v-model="module.height">
+                    <v-radio label="Tall" value="tall"></v-radio>
+                    <v-radio label="Medium" value="medium"></v-radio>
+                    <v-radio label="Short" value="short"></v-radio>
+                </v-radio-group>
+            </v-container>
+        </v-col>
+    </v-row>
+      </v-expansion-panel-text>
+    </v-expansion-panel>
+
     <Editor
       title="General settings"
       icon="mdi-script-text"

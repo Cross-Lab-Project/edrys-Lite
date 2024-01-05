@@ -15,7 +15,7 @@
           </v-list-item-title>
 
           <v-list-item-subtitle
-            v-html="scrapedModules[index].description"
+            v-html="scrapedModules[index]?.description || 'No description'"
             style="white-space: break-spaces"
           >
           </v-list-item-subtitle>
