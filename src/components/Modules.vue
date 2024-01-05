@@ -73,9 +73,10 @@ export default {
 
   async mounted() {
     this.grid = new Muuri(".grid", {
+      dragEnabled: true,
+      layoutOnInit: true,
       layoutDuration: 400,
       layoutEasing: "ease",
-      dragEnabled: true,
       dragSortInterval: 50,
       layout: {
         fillGaps: true,
@@ -197,6 +198,7 @@ export default {
   z-index: 1;
   max-width: 99%;
   border: 1px solid #000;
+  border-top: 8px solid #000;
 }
 
 .item--w2 {
@@ -224,4 +226,16 @@ export default {
   width: 100%;
   margin: 0 auto;
 }
+
+.item.muuri-item-dragging {
+  z-index: 3;
+}
+.item.muuri-item-releasing {
+  z-index: 2;
+}
+.item.muuri-item-hidden {
+  z-index: 0;
+}
+
+
 </style>
