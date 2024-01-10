@@ -155,7 +155,7 @@ export default {
   <div :key="role">
     <div
       class="grid"
-      :v-show="!!liveClassProxy?.liveRoom"
+      :v-show="liveClassProxy !== null ? true : false"
       style="width: 100%"
     >
       <div
