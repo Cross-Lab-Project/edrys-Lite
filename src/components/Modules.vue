@@ -23,6 +23,10 @@ export default {
   },
   computed: {
     roomName() {
+      const self = this;
+      setTimeout(() => {
+        self.gridUpdate();
+      }, 1000);
       return this.liveClassProxy.users[this.username]?.room || "Station " + this.username;
     },
     modulesType() {
@@ -72,23 +76,29 @@ export default {
   },
 
   async mounted() {
-    this.grid = new Muuri(".grid", {
-      dragEnabled: true,
-      layoutOnInit: true,
-      layoutDuration: 400,
-      layoutEasing: "ease",
-      dragSortInterval: 50,
-      layout: {
-        fillGaps: true,
-        horizontal: false,
-        alignRight: false,
-        alignBottom: false,
-        rounding: true,
-      },
-    });
+    this.gridUpdate();
   },
 
   methods: {
+    gridUpdate() {
+      if (this.grid !== null) this.grid.destroy();
+      
+      this.grid = new Muuri(".grid", {
+        dragEnabled: true,
+        layoutOnInit: true,
+        layoutDuration: 400,
+        layoutEasing: "ease",
+        dragSortInterval: 50,
+        layout: {
+          fillGaps: true,
+          horizontal: false,
+          alignRight: false,
+          alignBottom: false,
+          rounding: true,
+        },
+      });
+    },
+
     size(height: string, width: string): string {
       let result = ["item"];
 
@@ -236,6 +246,4 @@ export default {
 .item.muuri-item-hidden {
   z-index: 0;
 }
-
-
 </style>
