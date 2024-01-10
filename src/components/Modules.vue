@@ -82,7 +82,7 @@ export default {
   methods: {
     gridUpdate() {
       if (this.grid !== null) this.grid.destroy();
-      
+
       this.grid = new Muuri(".grid", {
         dragEnabled: true,
         layoutOnInit: true,
@@ -207,8 +207,9 @@ export default {
   margin: 5px;
   z-index: 1;
   max-width: 99%;
-  border: 1px solid #000;
-  border-top: 8px solid #000;
+  border: 1px solid #888;
+  border-top: 0.75rem solid #888;
+  border-radius: 0.25rem;
 }
 
 .item--w2 {
