@@ -98,7 +98,9 @@ export default {
 
       if (this.configuration) {
         this.data = clone(this.configuration.data);
-        this.isOwner = this.configuration.data.createdBy === this.peerID;
+        this.isOwner =
+          this.configuration.data.createdBy === this.peerID ||
+          this.getRole() === "teacher";
         this.scrapeModules();
       }
 
@@ -125,18 +127,14 @@ export default {
 
     getRole() {
       if (this.isStation) {
-        return "Station";
+        return "station";
       }
 
       if (this.isOwner) {
-        return "Owner";
+        return "teacher";
       }
 
-      if (this.configuration.data.members.teacher.includes(this.peerID)) {
-        return "Teacher";
-      }
-
-      return "Student";
+      return "student";
     },
 
     async scrapeModules() {
@@ -198,8 +196,9 @@ export default {
 
       for (const id in this.liveClassProxy.users) {
         if (this.liveClassProxy.users[id].room === name) {
+          const displayName = this.liveClassProxy.users[id].displayName;
           users.push([
-            this.liveClassProxy.users[id].displayName,
+            displayName.startsWith("Station ") ? displayName : displayName.slice(6),
             this.peerID === id ? "black" : "grey",
           ]);
         }
@@ -473,7 +472,7 @@ export default {
       <v-main style="overflow-y: scroll">
         <v-col>
           <Modules
-            :role="isStation ? 'station' : isOwner ? 'teacher' : 'student'"
+            :role="getRole()"
             :username_="peerID"
             :liveClassProxy="liveClassProxy"
             :scrapedModules_="scrapedModules"
