@@ -45,6 +45,9 @@ export default {
     updateClass() {
       this.$emit("updateClass", this.config);
     },
+    updateMembers(members) {
+      this.config.members = members;
+    },
   },
 
   watch: {
@@ -106,7 +109,7 @@ export default {
         </v-window-item>
 
         <v-window-item>
-          <Members :config="config"></Members>
+          <Members :members="config.members" @updateMembers="updateMembers"></Members>
         </v-window-item>
 
         <v-window-item>
