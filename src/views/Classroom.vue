@@ -8,6 +8,8 @@ import { infoHash, scrapeModule, clone, getPeerID } from "../ts/Utils";
 import { onMounted } from "vue";
 import Peer from "../ts/Peer";
 
+import { copyToClipboard } from "../ts/Utils";
+
 export default {
   props: ["id", "station"],
 
@@ -70,6 +72,9 @@ export default {
   },
 
   methods: {
+    copyPeerID() {
+      copyToClipboard(this.peerID);
+    },
     async init() {
       this.configuration = await this.database.get(this.id);
 
@@ -118,6 +123,22 @@ export default {
       return rooms;
     },
 
+    getRole() {
+      if (this.isStation) {
+        return "Station";
+      }
+
+      if (this.isOwner) {
+        return "Owner";
+      }
+
+      if (this.configuration.data.members.teacher.includes(this.peerID)) {
+        return "Teacher";
+      }
+
+      return "Student";
+    },
+
     async scrapeModules() {
       this.states.receivedConfiguration = true;
 
@@ -128,16 +149,16 @@ export default {
       }
 
       const self = this;
-      
+
       this.communication.on("room", (config: any) => {
         self.liveClassProxy = config;
       });
 
       self.liveClassProxy = this.communication.join();
-      
-      this.communication.on("connected" , (state: boolean) => {
+
+      this.communication.on("connected", (state: boolean) => {
         self.states.connectedToNetwork = state;
-      })
+      });
 
       this.componentKey++;
 
@@ -169,7 +190,7 @@ export default {
 
       this.database.update(clone(this.configuration));
 
-      this.scrapeModules()
+      this.scrapeModules();
     },
 
     usersInRoom(name: string): [string, string][] {
@@ -222,8 +243,12 @@ export default {
     "
     style="background-color: rgba(0, 0, 0, 0.6); z-index: 1000"
   >
-    <v-container >
-      <v-row justify="center" align="center" style="color: white; width: 100vw; height: 70vh">
+    <v-container>
+      <v-row
+        justify="center"
+        align="center"
+        style="color: white; width: 100vw; height: 70vh"
+      >
         <v-col cols="12" sm="12" md="4" justify="center" align="center">
           <v-progress-circular
             indeterminate
@@ -313,7 +338,34 @@ export default {
         </template>
 
         <template v-slot:append>
-          <v-btn icon="mdi-dots-vertical"></v-btn>
+          <v-menu>
+            <template v-slot:activator="{ props }">
+              <v-btn v-bind="props" icon="mdi-dots-vertical"> </v-btn>
+            </template>
+
+            <v-list>
+              <v-list-item>
+                <v-list-item-title> User ID: </v-list-item-title>
+                <v-list-item-subtitle>
+                  {{ peerID }}
+                  <v-btn
+                    icon="mdi-content-copy"
+                    size="small"
+                    variant="flat"
+                    @click="copyPeerID()"
+                  >
+                  </v-btn>
+                </v-list-item-subtitle>
+              </v-list-item>
+
+              <v-list-item>
+                <v-list-item-title> User Role: </v-list-item-title>
+                <v-list-item-subtitle>
+                  {{ getRole() }}
+                </v-list-item-subtitle>
+              </v-list-item>
+            </v-list>
+          </v-menu>
         </template>
       </v-app-bar>
 

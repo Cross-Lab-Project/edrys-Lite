@@ -88,8 +88,8 @@ function replace(code, baseURL) {
   }
 }
 
-export function copyUrl(url: string) {
-  navigator.clipboard.writeText(url)
+export function copyToClipboard(str: string) {
+  navigator.clipboard.writeText(str)
 }
 
 export function parseClassroom(config: string) {

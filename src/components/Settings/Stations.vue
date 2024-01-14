@@ -16,7 +16,7 @@
 </template>
 
 <script lang="ts">
-import { copyUrl } from "../../ts/Utils";
+import { copyToClipboard} from "../../ts/Utils";
 
 export default {
   name: "Settings-Stations",
@@ -36,7 +36,7 @@ export default {
 
   methods: {
     copyUrl() {
-      copyUrl(this.url);
+      copyToClipboard(this.url);
     },
   },
 };
