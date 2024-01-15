@@ -7,7 +7,7 @@
         <v-icon :style="errorMessage ? 'color: red;' : ''"> {{ icon }} </v-icon>
       </template>
     </v-expansion-panel-title>
-    <v-expansion-panel-text>
+    <v-expansion-panel-text style="max-height: 60vh">
       <div
         style="font-size: small; margin-bottom: 0.25rem"
         :style="errorMessage ? 'color: red;' : 'color: gray;'"
