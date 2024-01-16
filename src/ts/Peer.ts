@@ -166,32 +166,32 @@ export default class Peer {
           if (msg.data.timestamp < self.timestamp.join) {
             self.timestamp.join = msg.data.timestamp
 
-            self.doc.getMap('users').unobserve(this.observer)
-            self.doc.getMap('rooms').unobserve(this.observer)
-
+            self.doc.getMap('users').unobserve(self.observer)
+            self.doc.getMap('rooms').unobserve(self.observer)
             self.doc = new Y.Doc()
-            Y.applyUpdate(this.doc, data)
+
+            Y.applyUpdate(self.doc, data)
             self.initDoc(false)
             self.enterClassroom('room-join')
             self.update('room')
           } else {
-            Y.applyUpdate(this.doc, data)
+            Y.applyUpdate(self.doc, data)
           }
 
           break
         }
         case 'room-update':
-          if (msg.id === this.peerID) {
+          if (msg.id === self.peerID) {
             break
           }
-          if (!this.peers[peer.id]) {
-            this.peers[peer.id] = { peer, id: msg.id }
+          if (!self.peers[peer.id]) {
+            self.peers[peer.id] = { peer, id: msg.id }
           } else {
-            this.peers[peer.id].id = msg.id
+            self.peers[peer.id].id = msg.id
           }
 
           const data = decode(msg.data.config)
-          Y.applyUpdate(this.doc, data)
+          Y.applyUpdate(self.doc, data)
           break
         default:
           console.warn('unknown command', msg.topic)
