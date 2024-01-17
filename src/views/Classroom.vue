@@ -130,7 +130,7 @@ export default {
         return "station";
       }
 
-      if (this.isOwner) {
+      if (this.isOwner || this.configuration?.data?.members?.teacher?.includes(this.peerID)) {
         return "teacher";
       }
 

@@ -27,14 +27,16 @@ export default {
     forkClass(classroom: any) {
       classroom = clone(classroom);
 
-      alert(JSON.stringify(classroom, null, 2));
       const id = infoHash();
       const peerID = getPeerID();
 
       if (classroom.data.createdBy !== peerID) {
         removeKeysStartingWithSecret(classroom);
+
+        classroom.data.members.teacher = [];
+        classroom.data.members.student = [];
       }
-      
+
       classroom.data.createdBy = peerID;
       classroom.id = id;
 
@@ -110,6 +112,9 @@ export default {
               <v-card-subtitle>
                 <span v-if="classroom?.data.createdBy === peerID"
                   >You own this class</span
+                >
+                <span v-else-if="classroom?.data.members.teacher.includes(peerID)"
+                  >You're a teacher here</span
                 >
                 <span v-else>You're a student here</span>
               </v-card-subtitle>
