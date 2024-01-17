@@ -62,7 +62,13 @@ export default {
   },
 
   data() {
-    const input = typeof this.config === "string" ? this.config : stringify(this.config);
+    let input = "" 
+
+    if (typeof this.config === "string" && this.config.trim() !== "") {
+      input = "|-\n  " + this.config.split("\n").join("\n  ");
+    } else {
+      input = stringify(this.config);
+    }
 
     return {
       code: input === "''\n" ? "" : input,
