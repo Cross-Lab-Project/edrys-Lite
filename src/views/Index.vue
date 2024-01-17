@@ -1,7 +1,7 @@
 <script lang="ts">
 import DateFormat from "date-format-simple";
 import { Database, DatabaseItem } from "../ts/Database";
-import { infoHash, getPeerID, clone } from "../ts/Utils";
+import { infoHash, getPeerID, clone, removeKeysStartingWithSecret } from "../ts/Utils";
 
 export default {
   data() {
@@ -27,9 +27,15 @@ export default {
     forkClass(classroom: any) {
       classroom = clone(classroom);
 
-      console.log(classroom);
+      alert(JSON.stringify(classroom, null, 2));
       const id = infoHash();
-      classroom.data.createdBy = getPeerID();
+      const peerID = getPeerID();
+
+      if (classroom.data.createdBy !== peerID) {
+        removeKeysStartingWithSecret(classroom);
+      }
+      
+      classroom.data.createdBy = peerID;
       classroom.id = id;
 
       this.database.put({ id, data: classroom.data, timestamp: Date.now() });

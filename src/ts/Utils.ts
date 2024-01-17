@@ -327,3 +327,20 @@ export function getPeerID() {
 export function clone(object: any) {
   if (object !== undefined) return JSON.parse(JSON.stringify(object))
 }
+
+export function removeKeysStartingWithSecret(obj: any) {
+  for (let key in obj) {
+    if (typeof obj[key] === 'object') {
+      // Recursively call the function if the value is an object or an array
+      removeKeysStartingWithSecret(obj[key])
+
+      if (JSON.stringify(obj[key]) === '{}') {
+        delete obj[key]
+      }
+    }
+    // If the key starts with "secret", delete the key-value pair
+    if (key.toLocaleLowerCase().startsWith('secret')) {
+      delete obj[key]
+    }
+  }
+}
