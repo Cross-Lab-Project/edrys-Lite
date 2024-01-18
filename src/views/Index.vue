@@ -186,5 +186,36 @@ export default {
         </v-row>
       </v-container>
     </v-main>
+    <v-footer color="surface-variant" app="true" elevation="15">
+      <v-row justify="center" no-gutters>
+        <v-btn
+          density="plain"
+          icon="mdi-github"
+          href="https://github.com/Cross-Lab-Project/edrys-Lite/"
+          target="_"
+          class="mx-2"
+        > </v-btn>
+
+        <v-btn
+          density="plain"
+          icon="mdi-information"
+          href="https://github.com/edrys-org/edrys/blob/main/docs/Modules.md"
+          target="_"
+          class="mx-2"
+        >
+        </v-btn>
+
+        <!--v-btn
+          density="plain"
+          icon="mdi-plus-circle"
+          href="https://github.com/Cross-Lab-Project/edrys-Lite/"
+          target="_"
+          class="mx-2"
+        >
+        </v-btn-->
+
+
+      </v-row>
+    </v-footer>
   </v-app>
 </template>
