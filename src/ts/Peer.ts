@@ -1,22 +1,33 @@
 import P2PT from 'p2pt'
 import { getPeerID } from './Utils'
-import State from './State'
+import * as Y from 'yjs'
+import { encode, decode } from 'uint8-to-base64'
 
 var trackersAnnounceURLs = [
   'wss://tracker.openwebtorrent.com',
   'wss://tracker.webtorrent.dev',
   'wss://tracker.files.fm:7073/announce',
+
   'wss://tracker.openwebtorrent.com:443/announce',
   'wss://tracker.files.fm:7073/announce',
 ]
 
+const ROOM = {
+  studentPublicState: '',
+  teacherPublicState: '',
+  teacherPrivateState: '',
+}
+
 export default class Peer {
   private p2pt: P2PT
-  private state: State
+  public doc: Y.Doc = new Y.Doc()
+  private observer: any
 
   private id: string
   private data: any
   private connected: boolean = false
+
+  private roomBubbling?: number
 
   private timestamp: {
     config: number
@@ -29,6 +40,21 @@ export default class Peer {
   private callbackUpdate: {} = {}
 
   private peerID: string
+  private stationID: string = ''
+
+  private userSettings: any = {
+    displayName: '',
+    room: 'Lobby',
+    role: 'student',
+    dateJoined: Date.now(),
+    handRaised: false,
+    connections: [
+      {
+        id: '',
+        target: {},
+      },
+    ],
+  }
 
   constructor(
     config: { id: string; data: any; timestamp: number },
@@ -40,10 +66,9 @@ export default class Peer {
 
     this.peerID = getPeerID()
     if (stationID) {
-      this.peerID = 'Station ' + stationID
+      this.stationID = 'Station ' + stationID
+      this.peerID = this.stationID
     }
-
-    this.state = new State(this.peerID)
 
     this.p2pt = new P2PT(trackersAnnounceURLs, this.id)
 
@@ -68,7 +93,23 @@ export default class Peer {
 
       delete self.peers[peer.id]
       if (peerID) {
-        self.state.removeUser(peerID, true)
+        if (peerID.startsWith('Station')) {
+          this.doc.transact(() => {
+            const users = this.doc.getMap('users')
+            users.delete(peerID)
+
+            users.forEach((user: any, id: string) => {
+              if (user.room === peerID) {
+                user.room = 'Lobby'
+                users.set(id, user)
+              }
+            })
+
+            this.doc.getMap('rooms').delete(peerID)
+          })
+        } else {
+          this.doc.getMap('users').delete(peerID)
+        }
       }
     })
 
@@ -110,19 +151,47 @@ export default class Peer {
           break
         }
 
+        case 'room-join': {
+          if (msg.id === this.peerID) {
+            break
+          }
+
+          if (!this.peers[peer.id]) {
+            self.peers[peer.id] = { peer, id: msg.id }
+          } else {
+            self.peers[peer.id].id = msg.id
+          }
+
+          const data = decode(msg.data.config)
+          if (msg.data.timestamp < self.timestamp.join) {
+            self.timestamp.join = msg.data.timestamp
+
+            self.doc.getMap('users').unobserve(self.observer)
+            self.doc.getMap('rooms').unobserve(self.observer)
+            self.doc = new Y.Doc()
+
+            Y.applyUpdate(self.doc, data)
+            self.initDoc(false)
+            self.enterClassroom('room-join')
+            self.update('room')
+          } else {
+            Y.applyUpdate(self.doc, data)
+          }
+
+          break
+        }
         case 'room-update':
           if (msg.id === self.peerID) {
             break
           }
-
           if (!self.peers[peer.id]) {
             self.peers[peer.id] = { peer, id: msg.id }
           } else {
             self.peers[peer.id].id = msg.id
           }
 
-          self.state.merge(msg.data)
-
+          const data = decode(msg.data.config)
+          Y.applyUpdate(self.doc, data)
           break
         default:
           console.warn('unknown command', msg.topic)
@@ -169,7 +238,7 @@ export default class Peer {
       }
       case 'room': {
         if (callback) {
-          callback(this.state.toJSON())
+          callback(this.doc.toJSON())
           this.callbackUpdate[event] = false
         } else {
           this.callbackUpdate[event] = true
@@ -222,7 +291,7 @@ export default class Peer {
     msg.id = this.peerID
 
     if (msg.topic === 'room') {
-      const users = this.state.getUsers()
+      const users = this.doc.getMap('users').toJSON()
 
       msg.data.msg.date = Date.now()
 
@@ -287,38 +356,148 @@ export default class Peer {
   }
 
   addRoom() {
-    this.state.addRoom(true)
+    const rooms = this.doc.getMap('rooms')
+    const room = 'Room ' + rooms.size
+    rooms.set(room, {
+      studentPublicState: '',
+      teacherPublicState: '',
+      teacherPrivateState: '',
+    })
   }
 
   gotoRoom(room: string) {
-    this.state.gotoRoom(room)
+    this.userSettings.room = room
+    this.doc.getMap('users').set(this.peerID, this.userSettings)
   }
 
   join() {
+    this.userSettings.displayName = this.peerID
+
     this.timestamp.join = Date.now()
 
-    this.state.init('student', this.data.meta.defaultNumberOfRooms)
+    this.initDoc(true, this.data.meta.defaultNumberOfRooms)
 
     const self = this
-    this.state.on('update', (full: boolean) => {
-      if (full) {
-        this.updateClassroom()
-      }
-
-      this.update('room')
-    })
-
     setTimeout(() => {
-      self.updateClassroom()
+      self.enterClassroom('room-join')
     }, 1000)
 
-    return this.state.toJSON()
+    if (this.roomBubbling) {
+      clearInterval(this.roomBubbling)
+    }
+
+    this.roomBubbling = setInterval(() => {
+      self.enterClassroom('room-update')
+    }, 5000)
+
+    return this.doc.toJSON()
   }
 
-  updateClassroom() {
+  initDoc(full: boolean = true, defaultRooms: number = 0) {
+    const rooms = this.doc.getMap('rooms')
+    const users = this.doc.getMap('users')
+
+    if (full) {
+      rooms.set('Lobby', ROOM)
+
+      if (defaultRooms > 0) {
+        for (let i = 1; i <= defaultRooms; i++) {
+          rooms.set('Room ' + i, ROOM)
+        }
+      }
+    }
+
+    if (this.stationID) {
+      rooms.set(this.stationID, ROOM)
+
+      this.userSettings.room = this.stationID
+    }
+
+    users.set(this.peerID, this.userSettings)
+
+    const self = this
+
+    this.observer = (event: any) => {
+      if (self.stationID) {
+        if (users.has(self.peerID) && rooms.has(self.stationID)) {
+          self.update('room')
+          self.enterClassroom('room-update')
+        } else {
+          self.doc.transact(() => {
+            rooms.set(self.stationID, ROOM)
+            users.set(self.peerID, self.userSettings)
+          })
+        }
+      } else {
+        if (users.has(self.peerID)) {
+          self.update('room')
+          self.enterClassroom('room-update')
+        } else {
+          users.set(self.peerID, self.userSettings)
+        }
+      }
+    }
+
+    rooms.observe(this.observer)
+    users.observe(this.observer)
+  }
+
+  enterClassroom(type: 'room-join' | 'room-update') {
     this.broadcast({
-      topic: 'room-update',
-      data: this.state.encode(),
+      topic: type,
+      data: {
+        config: encode(Y.encodeStateAsUpdate(this.doc)),
+        timestamp: this.timestamp.join,
+      },
     })
   }
 }
+
+/*
+
+var trackersAnnounceURLs = [
+  'wss://tracker.openwebtorrent.com',
+  'wss://tracker.webtorrent.dev',
+  'wss://tracker.files.fm:7073/announce',
+
+  'wss://tracker.openwebtorrent.com:443/announce',
+  'wss://tracker.files.fm:7073/announce',
+]
+
+window['P2PT'] = P2PT
+
+window.p2pt = new P2PT(trackersAnnounceURLs, 'hasdfhasudasdiufqwewrasf')
+
+window.p2pt.on('trackerconnect', (tracker, stats) => {
+  console.log('Connected to tracker : ' + tracker.announceUrl)
+  console.log('Tracker stats : ' + JSON.stringify(stats))
+})
+
+window.p2pt.on('peerconnect', (peer) => {
+  console.warn('Peer connected : ' + peer.id, peer)
+})
+
+window.p2pt.on('peerclose', (peer) => {
+  console.warn('Peer disconnected : ' + peer)
+})
+
+window.p2pt.on('msg', (peer, msg) => {
+  console.warn('Received : ', peer, msg)
+})
+
+window.p2pt.on('warning', (msg) => {
+  console.warn('Warning : ', msg)
+})
+
+window.p2pt.on('update', (msg) => {
+  console.warn('Update : ', msg)
+})
+
+window.p2pt.on('peer', (msg) => {
+  console.warn('Peer : ', msg)
+})
+
+window.p2pt.start()
+
+//window.p2pt.send('asdfsaf', 'hallo welt')
+*/
