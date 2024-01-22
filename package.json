@@ -16,7 +16,7 @@
     "@parcel/transformer-vue": "^2.9.3",
     "assert": "^2.1.0",
     "buffer": "^6.0.3",
-    "caniuse-lite": "^1.0.30001547",
+    "caniuse-lite": "^1.0.30001579",
     "create-vuetify": "^1.1.0",
     "dexie": "^3.2.4",
     "events": "^3.3.0",
@@ -24,7 +24,6 @@
     "p2pt": "^1.5.1",
     "parcel": "^2.9.3",
     "process": "^0.11.10",
-    "uint8-to-base64": "^0.2.0",
     "vue-prism-editor": "^2.0.0-alpha.2",
     "vuedraggable": "^4.1.0",
     "vuetify": "^3.3.16"
@@ -32,8 +31,7 @@
   "dependencies": {
     "material-design-icons-iconfont": "^6.7.0",
     "muuri": "^0.9.5",
-    "prismjs": "^1.29.0",
-    "yjs": "^13.6.8"
+    "prismjs": "^1.29.0"
   },
   "browserslist": [
     "cover 95.0%"
