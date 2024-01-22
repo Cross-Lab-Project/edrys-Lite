@@ -276,6 +276,7 @@ export default class State {
       }
     }
 
+    /*
     for (const id of tombstones) {
       console.warn('TOMBSTONE', id)
       this.removeUser(id)
@@ -292,7 +293,7 @@ export default class State {
         }
       }
     }
-
+    */
     this.update(true)
   }
 
