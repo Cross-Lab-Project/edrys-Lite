@@ -264,6 +264,11 @@ export default class State {
 
     this.doc.users[this.userID] = this.userSettings
 
+    if (this.isStation) {
+      this.doc.rooms[this.userID].timestamp = timeNow
+      this.doc.rooms[this.userID].tombstone = false
+    }
+
     let tombstones: string[] = []
 
     for (const id in this.doc.users) {
