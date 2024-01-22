@@ -1,14 +1,15 @@
 import { clone, deepEqual } from './Utils'
 
-const HEARTBEAT_INTERVAL = 10000
-const HEARTBEAT_TIMEOUT = 30000
-const HEARTBEAT_DEATH = 90000
+const HEARTBEAT_INTERVAL = 10 * 1000
+const HEARTBEAT_TIMEOUT = 3 * 60 * 1000
+const HEARTBEAT_DEATH = 15 * 60 * 10000
 
 const LOBBY = 'Lobby'
 const STATION = 'Station'
 
 export default class State {
   private doc: any = { users: {}, rooms: {} }
+  private backupDoc: any = { users: {}, rooms: {} }
 
   private userID: string = ''
   private heartbeatID?: number
@@ -85,14 +86,26 @@ export default class State {
   }
 
   toJSON(doc?: any) {
-    if (!doc) {
+    const createBackup = !doc
+
+    if (createBackup) {
       doc = this.doc
     }
 
-    return {
+    const newDoc = {
       rooms: this.filterTombstones(clone(doc.rooms)),
       users: this.filterTombstones(clone(doc.users)),
     }
+
+    if (createBackup && deepEqual(newDoc, this.backupDoc)) {
+      return this.backupDoc
+    }
+
+    if (createBackup) {
+      this.backupDoc = newDoc
+    }
+
+    return newDoc
   }
 
   filterTombstones(obj: any) {
@@ -100,7 +113,7 @@ export default class State {
 
     for (const id in obj) {
       if (!obj[id].tombstone) {
-        newObj[id] = obj[id]
+        newObj[id] = clone(obj[id])
         delete newObj[id].tombstone
         delete newObj[id].timestamp
       }
@@ -206,8 +219,8 @@ export default class State {
       }
     }
 
-    this.doc.rooms = rooms
-    this.doc.users = users
+    this.doc.rooms = clone(rooms)
+    this.doc.users = clone(users)
 
     const fullUpdate = !deepEqual(this.toJSON(doc), this.toJSON(this.doc))
 
@@ -264,10 +277,12 @@ export default class State {
     }
 
     for (const id of tombstones) {
+      console.warn('TOMBSTONE', id)
       this.removeUser(id)
     }
 
     // remove users entirely if they have been dead for a while
+
     for (const id in this.doc.users) {
       if (!this.isUserAlive(id)) {
         let timestamp = this.doc.users[id].timestamp || 0
@@ -282,7 +297,7 @@ export default class State {
   }
 
   on(event: 'update', callback: (full: boolean) => void) {
-    this.callback = throttle(callback)
+    this.callback = callback
   }
 }
 
