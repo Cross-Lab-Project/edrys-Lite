@@ -1,5 +1,5 @@
 import P2PT from 'p2pt'
-import { getPeerID } from './Utils'
+import { getPeerID, getShortPeerID } from './Utils'
 import State from './State'
 
 var trackersAnnounceURLs = [
@@ -138,10 +138,6 @@ export default class Peer {
     this.timestamp.config = config.timestamp
 
     this.publishSetup()
-  }
-
-  getPeerID() {
-    return this.peerID
   }
 
   update(event: 'setup' | 'room' | 'message' | 'connected', message?: any) {

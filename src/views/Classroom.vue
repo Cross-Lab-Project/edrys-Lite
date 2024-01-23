@@ -4,7 +4,7 @@ import Settings from "../components/Settings.vue";
 import Modules from "../components/Modules.vue";
 
 import { Database, DatabaseItem } from "../ts/Database";
-import { infoHash, scrapeModule, clone, getPeerID } from "../ts/Utils";
+import { infoHash, scrapeModule, clone, getPeerID, getShortPeerID } from "../ts/Utils";
 import { onMounted } from "vue";
 import Peer from "../ts/Peer";
 
@@ -33,6 +33,14 @@ export default {
       this.init();
     });
 
+    let stationName = "";
+    let peerID = getPeerID(true);
+
+    if (this.station) {
+      stationName = infoHash(6);
+      peerID = "Station " + stationName;
+    }
+
     return {
       state: true,
       states: {
@@ -46,7 +54,6 @@ export default {
       data,
 
       communication,
-      peerID: null,
       isOwner: false,
 
       showSideMenu: true,
@@ -58,7 +65,8 @@ export default {
 
       isStation: this.station,
 
-      stationName: this.station ? infoHash(6) : "",
+      peerID,
+      stationName,
 
       componentKey: 0,
     };
@@ -73,7 +81,10 @@ export default {
 
   methods: {
     copyPeerID() {
-      copyToClipboard(this.peerID);
+      copyToClipboard(getPeerID(false));
+    },
+    getPeerID() {
+      return getPeerID(false);
     },
     async init() {
       this.configuration = await this.database.get(this.id);
@@ -84,8 +95,6 @@ export default {
           : { id: this.id, data: null, timestamp: 0 },
         this.stationName
       );
-
-      this.peerID = this.communication.getPeerID();
 
       const self = this;
 
@@ -99,7 +108,7 @@ export default {
       if (this.configuration) {
         this.data = clone(this.configuration.data);
         this.isOwner =
-          this.configuration.data.createdBy === this.peerID ||
+          this.peerID.startsWith(this.configuration.data.createdBy) ||
           this.getRole() === "teacher";
         this.scrapeModules();
       }
@@ -130,7 +139,10 @@ export default {
         return "station";
       }
 
-      if (this.isOwner || this.configuration?.data?.members?.teacher?.includes(this.peerID)) {
+      if (
+        this.isOwner ||
+        this.configuration?.data?.members?.teacher?.includes(this.peerID)
+      ) {
         return "teacher";
       }
 
@@ -198,7 +210,7 @@ export default {
         if (this.liveClassProxy.users[id].room === name) {
           const displayName = this.liveClassProxy.users[id].displayName;
           users.push([
-            displayName.startsWith("Station ") ? displayName : displayName.slice(6),
+            getShortPeerID(displayName),
             this.peerID === id ? "black" : "grey",
           ]);
         }
@@ -346,7 +358,7 @@ export default {
               <v-list-item>
                 <v-list-item-title> User ID: </v-list-item-title>
                 <v-list-item-subtitle>
-                  {{ peerID }}
+                  {{ getPeerID() }}
                   <v-btn
                     icon="mdi-content-copy"
                     size="small"

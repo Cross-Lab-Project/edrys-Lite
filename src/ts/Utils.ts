@@ -314,14 +314,31 @@ export function infoHash(length = 40) {
   return str
 }
 
-export function getPeerID() {
+var SessionID: string | null = null
+
+export function getPeerID(withSession = true) {
   let peerID = localStorage.getItem('peerID')
   if (!peerID) {
     peerID = infoHash(12)
     localStorage.setItem('peerID', peerID)
   }
 
-  return peerID
+  if (!SessionID) {
+    SessionID = infoHash(6)
+  }
+
+  return withSession ? peerID + '_' + SessionID : peerID
+}
+
+export function getShortPeerID(id: string) {
+  const ids = id.split('_')
+
+  // peerID_sessionID
+  if (ids.length == 2) {
+    return ids[0].slice(6)
+  }
+
+  return id
 }
 
 export function clone(object: any) {

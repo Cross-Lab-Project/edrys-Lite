@@ -103,7 +103,7 @@ export default {
       this.config.name = newConfig.name;
 
       this.config.meta = newConfig.meta;
-      this.config.createdBy = getPeerID();
+      this.config.createdBy = getPeerID(false);
       this.config.dateCreated = newConfig.dateCreated;
       this.config.members = newConfig.members;
       this.config.modules = newConfig.modules;

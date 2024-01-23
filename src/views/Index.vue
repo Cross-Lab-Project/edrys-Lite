@@ -15,7 +15,7 @@ export default {
     return {
       database,
       classrooms,
-      peerID: getPeerID(),
+      peerID: getPeerID(false),
     };
   },
 
