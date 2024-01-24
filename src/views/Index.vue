@@ -28,7 +28,7 @@ export default {
       classroom = clone(classroom);
 
       const id = infoHash();
-      const peerID = getPeerID();
+      const peerID = getPeerID(false);
 
       if (classroom.data.createdBy !== peerID) {
         removeKeysStartingWithSecret(classroom);
@@ -50,7 +50,7 @@ export default {
 
       const data = {
         id,
-        createdBy: getPeerID(),
+        createdBy: getPeerID(false),
         dateCreated: new Date().getTime(),
         name: "My New Class",
         meta: {
@@ -194,7 +194,8 @@ export default {
           href="https://github.com/Cross-Lab-Project/edrys-Lite/"
           target="_"
           class="mx-2"
-        > </v-btn>
+        >
+        </v-btn>
 
         <v-btn
           density="plain"
@@ -213,8 +214,6 @@ export default {
           class="mx-2"
         >
         </v-btn-->
-
-
       </v-row>
     </v-footer>
   </v-app>
