@@ -87,7 +87,7 @@
   </v-list>
 
   <v-divider class="pb-2"></v-divider>
-  <v-btn href="https://github.com/topics/edrys-module" target="_blank">
+  <v-btn href="https://github.com/topics/edrys-lite" target="_blank">
     <v-icon left> mdi-github </v-icon>
     Explore on GitHub
   </v-btn>

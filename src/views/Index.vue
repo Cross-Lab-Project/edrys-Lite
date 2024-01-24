@@ -65,7 +65,7 @@ export default {
         },
         modules: [
           {
-            url: "https://edrys-org.github.io/module-reference/",
+            url: "https://edrys-labs.github.io/module-reference/",
             config: "",
             studentConfig: "",
             teacherConfig: "",
