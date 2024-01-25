@@ -141,7 +141,7 @@ export default {
 
       if (
         this.isOwner ||
-        this.configuration?.data?.members?.teacher?.includes(this.peerID)
+        this.configuration?.data?.members?.teacher?.includes(getPeerID(false))
       ) {
         return "teacher";
       }
